@@ -27,3 +27,19 @@ obj/
 
 # SQL local dumps (optional, uncomment if you don't want to commit any sql files)
 # *.sql
+
+# Node.js / Hardhat / Blockchain
+node_modules/
+/Blockchain/artifacts/
+/Blockchain/cache/
+/Blockchain/coverage/
+/Blockchain/coverage.json
+/Blockchain/typechain/
+/Blockchain/typechain-types/
+
+# Hardhat environments and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
