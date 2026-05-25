@@ -1,0 +1,94 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+    Layout = "~/Views/Shared/_SuperLayout.cshtml";
+}
+
+<div class="text-center">
+
+    <h1 class="display-4">Laboratuvar Stok Takip Sistemi</h1>
+    <p class="lead">Sivas Numune Hastanesi Merkez Laboratuvarı</p>
+</div>
+<br />
+<div class="row">
+    <div class="col-lg-3 col-sm-6 col-12 d-flex">
+        <div class="dash-count">
+            <div class="dash-counts">
+                <h4>@ViewBag.UserCount</h4>
+                <h5>Kullanıcı Sayısı</h5>
+            </div>
+            <div class="dash-imgs">
+                <i data-feather="users"></i> <!-- Kullanıcılar için simge -->
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-sm-6 col-12 d-flex">
+        <div class="dash-count das1">
+            <div class="dash-counts">
+                <h4>@ViewBag.ProductVariety</h4>
+                <h5>Ürün Çeşiti</h5>
+            </div>
+            <div class="dash-imgs">
+                <i data-feather="grid"></i> <!-- Ürün çeşitleri için simge -->
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-sm-6 col-12 d-flex">
+        <div class="dash-count das2">
+            <div class="dash-counts">
+                <h4>@ViewBag.TotalProductCount</h4>
+                <h5>Toplam Ürün Sayısı</h5>
+            </div>
+            <div class="dash-imgs">
+                <i data-feather="package"></i> <!-- Toplam ürün için simge -->
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-sm-6 col-12 d-flex">
+        <div class="dash-count das3">
+            <div class="dash-counts">
+                <h4>@ViewBag.CurrentHour</h4>
+                <h5>Saat</h5>
+            </div>
+            <div class="dash-imgs">
+                <i data-feather="clock"></i> <!-- Saat için simge -->
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 col-sm-6 col-12 d-flex">
+        <div class="dash-count das3" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;">
+            <div class="dash-counts">
+                <h4>@ViewBag.Expired</h4>
+                <h5>Miadı Yaklaşan Ürünler</h5>
+            </div>
+            <div class="dash-imgs">
+                <i data-feather="alert-triangle"></i> <!-- Saat için simge -->
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 col-sm-6 col-12 d-flex">
+        <div class="dash-count das3" style="background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460;">
+            <div class="dash-counts">
+                <h4>@ViewBag.Low</h4>
+                <h5>Düşük Stoklu Ürünler</h5>
+            </div>
+            <div class="dash-imgs">
+                <i data-feather="alert-circle"></i> <!-- Saat için simge -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<footer class="footer mt-auto py-3 bg-light">
+    <div class="container text-center">
+        <span class="text-muted">© 2024 Numune Stok Takip Uygulaması. Tüm hakları saklıdır. Inncrea Yazılım Bilişim LTD. ŞTİ.</span>
+    </div>
+</footer>
+
+<script src="https://unpkg.com/feather-icons"></script>
+<script>feather.replace();</script>

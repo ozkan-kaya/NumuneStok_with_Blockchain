@@ -1,0 +1,864 @@
+﻿@page
+@{
+    Layout = "~/Views/Shared/_VisitorLayout.cshtml";
+}
+
+<style>
+    .barcode-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #fff8f3 0%, #fff3e6 100%);
+        padding: 2rem;
+    }
+
+    .barcode-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .barcode-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #fe9f43;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(254, 159, 67, 0.2);
+    }
+
+    .barcode-input-container {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 2px solid #fe9f43;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+
+
+    .barcode-input {
+        width: 100%;
+        font-size: 2rem;
+        padding: 1.5rem;
+        text-align: center;
+        border: none;
+        border-radius: 15px;
+        background: #fff8f3;
+        color: #333;
+        font-weight: 600;
+        letter-spacing: 2px;
+        transition: all 0.3s ease;
+    }
+
+    .barcode-input:focus {
+        outline: none;
+        background: #fff;
+        box-shadow: 0 0 10px rgba(254, 159, 67, 0.2);
+    }
+
+    .barcode-input::placeholder {
+        color: #fe9f43;
+        opacity: 0.7;
+    }
+
+    .scanned-list {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        border-left: 5px solid #fe9f43;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .scanned-title {
+        color: #fe9f43;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        font-size: 1.2rem;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.2rem;
+        border: 2px solid #f0f0f0;
+        margin-bottom: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .product-card:hover {
+        border-color: #fe9f43;
+        box-shadow: 0 2px 8px rgba(254, 159, 67, 0.1);
+    }
+
+    .product-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .product-reference {
+        font-weight: 600;
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .product-status {
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+
+
+    .product-time {
+        text-align: center;
+        color: #999;
+        font-size: 0.85rem;
+        margin-top: 0.8rem;
+        padding-top: 0.8rem;
+        border-top: 1px solid #eee;
+    }
+
+    .instruction-text {
+        text-align: center;
+        color: #666;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        animation: pulse 2s infinite;
+    }
+
+
+
+    .success-message {
+        background: linear-gradient(135deg, #2ed573, #27ae60);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        text-align: center;
+        font-weight: 600;
+        animation: slideDown 0.5s ease-out;
+    }
+
+    .no-items {
+        text-align: center;
+        color: #999;
+        font-style: italic;
+        padding: 2rem;
+    }
+
+
+
+
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .barcode-container {
+            padding: 1rem;
+        }
+        
+        .barcode-title {
+            font-size: 2rem;
+        }
+        
+        .barcode-input {
+            font-size: 1.5rem;
+            padding: 1rem;
+        }
+        
+        .barcode-input-container {
+            padding: 1rem;
+        }
+        
+        .product-card {
+            padding: 1rem;
+        }
+        
+        .product-reference {
+            font-size: 1.1rem;
+        }
+        
+
+    }
+</style>
+
+<div class="barcode-container">
+    <!-- Başarı Mesajı -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="success-message">
+            <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <!-- Başlık -->
+    <div class="barcode-header">
+        <div class="barcode-title">
+            <i class="fas fa-qrcode" style="margin-right: 1rem;"></i>
+            Barkod Stok Düşürme
+        </div>
+        <div class="instruction-text">
+            <i class="fas fa-barcode" style="margin-right: 0.5rem;"></i>
+            Barkodu okutun veya manuel girin
+        </div>
+    </div>
+
+        <!-- Barkod Giriş -->
+    <div class="barcode-input-container">
+        <form id="barcodeForm">
+            @Html.AntiForgeryToken()
+            <input type="text" 
+                   id="barcodeInput" 
+                   class="barcode-input"
+                   placeholder="Barkod bekleniyor..." 
+                   autocomplete="off"
+                   autofocus />
+        </form>
+    </div>
+
+    <!-- Son Okutulan Ürün -->
+    <div class="row">
+        <div class="col-12">
+            <div class="scanned-list">
+                <div class="scanned-title">
+                    <i class="fas fa-barcode" style="margin-right: 0.5rem;"></i>
+                    Son Okutulan Ürün
+                </div>
+                <div id="lastScannedProduct">
+                    <div class="no-items">
+                        <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                        Henüz barkod okutulmadı
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Son okutulan ürünü saklayacak object
+    let lastScannedProduct = JSON.parse(localStorage.getItem('lastScannedProduct') || 'null');
+    
+    // Sayfa yüklendiğinde son ürünü göster
+    document.addEventListener('DOMContentLoaded', function() {
+        updateLastScannedProduct();
+        
+        // Input focus'u koru
+        document.getElementById('barcodeInput').focus();
+    });
+
+    // Barkod okutma için debounce timer
+    let barcodeTimeout = null;
+    let lastBarcodeLength = 0;
+    
+    // Input değişikliklerini dinle
+    document.getElementById('barcodeInput').addEventListener('input', function(e) {
+        const barcode = e.target.value;
+        
+        // Önceki timeout'u temizle
+        if (barcodeTimeout) {
+            clearTimeout(barcodeTimeout);
+        }
+        
+        // Barkod uzunluğu kontrolü - 56 karakter ana hedef ama esnek
+        if (barcode.length >= 56 || 
+            (barcode.length >= 50 && barcode.length < lastBarcodeLength) || // Barkod okuyucu bitirdi
+            (barcode.length >= 40 && barcode.includes(' ') === false && /^[A-Za-z0-9]+$/.test(barcode))) {
+            
+            // Barkod okuyucunun işini bitirmesi için bekle
+            barcodeTimeout = setTimeout(() => {
+                submitBarcode();
+            }, 300); // Daha uzun bekleme süresi
+        } else if (barcode.length >= 25) {
+            // Kısa barkodlar için daha uzun bekle
+            barcodeTimeout = setTimeout(() => {
+                const currentBarcode = document.getElementById('barcodeInput').value;
+                if (currentBarcode.length === barcode.length && currentBarcode.length >= 25) {
+                    // Uzunluk değişmemişse barkod tamamlanmış
+                    submitBarcode();
+                }
+            }, 500); // Uzun bekleme
+        }
+        
+        lastBarcodeLength = barcode.length;
+    });
+
+    // Form submit olayını yakala
+    document.getElementById('barcodeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitBarcode();
+    });
+
+    // Enter tuşunu yakala
+    document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            submitBarcode();
+        }
+    });
+
+    function submitBarcode() {
+        // Pending timeout'u temizle
+        if (barcodeTimeout) {
+            clearTimeout(barcodeTimeout);
+            barcodeTimeout = null;
+        }
+        
+        const barcodeInput = document.getElementById('barcodeInput');
+        const barcode = barcodeInput.value.trim();
+
+        if (barcode.length === 0) {
+            showAlert('Lütfen barkod girin!', 'warning');
+            return;
+        }
+        
+        // Minimum barkod uzunluğu kontrolü
+        if (barcode.length < 20) {
+            showAlert('Barkod çok kısa. Lütfen tekrar okutun.', 'warning');
+            return;
+        }
+
+        // Barkoddan TÜM olası referans numaralarını çıkar
+        const allPossibleRefs = extractAllPossibleReferences(barcode);
+        console.log('🎯 Çıkarılan TÜM olası referanslar:', allPossibleRefs);
+        
+        if (!allPossibleRefs || allPossibleRefs.length === 0) {
+            console.log('❌ Hiçbir referans numarası çıkarılamadı!');
+            showAlert("Geçersiz barkod formatı. Lütfen tekrar deneyin.", 'error');
+            return;
+        }
+
+        console.log('📦 Ürün aranıyor, tüm referanslar sırayla denenecek...');
+        
+        // Input'u temizle ve focus'u koru
+        barcodeInput.value = '';
+        barcodeInput.focus();
+
+        // Tüm olası referansları sırayla dene
+        tryAllReferences(allPossibleRefs, barcode, 0);
+    }
+
+    // Barkoddan referans numarasını çıkaran fonksiyon
+    function extractReferenceNumber(barcode) {
+        console.log('🔍 Barkod parse ediliyor:', barcode);
+        console.log('📏 Barkod uzunluğu:', barcode.length);
+        
+        // Farklı barkod formatlarını destekle
+        
+        // Format 1a: 56+ karakter uzun barkod - TÜM pozisyonları test et
+        if (barcode.length >= 56) {
+            console.log('🎯 56+ karakter barkod tespit edildi');
+            console.log('🔍 TAM BARKOD:', barcode);
+            
+            // TÜM möğün pozisyonları test et
+            const positions = [
+                {name: '45-56 (son 11)', start: 45, end: 56},
+                {name: '37-48 (orijinal)', start: 37, end: 48},
+                {name: '44-56 (son 12)', start: 44, end: 56},
+                {name: '35-46 (orta)', start: 35, end: 46},
+                {name: '46-56 (son 10)', start: 46, end: 56},
+                {name: '30-41 (orta-sol)', start: 30, end: 41},
+                {name: '40-51 (orta-sağ)', start: 40, end: 51},
+                {name: '50-56 (son 6)', start: 50, end: 56},
+                {name: '20-31 (başlangıç)', start: 20, end: 31},
+                {name: '10-21 (başlangıç 2)', start: 10, end: 21},
+                {name: '0-11 (ilk 11)', start: 0, end: 11},
+            ];
+            
+            for (const pos of positions) {
+                const ref = barcode.substring(pos.start, pos.end);
+                console.log(`📍 ${pos.name}: "${ref}"`);
+                if (ref && ref.trim().length > 0 && /^[A-Za-z0-9]+$/.test(ref)) {
+                    console.log(`🟢 Geçerli format bulundu: ${pos.name} = "${ref.trim()}"`);
+                    
+                    // İLK geçerli formatı döndürme, hepsini logla
+                }
+            }
+            
+            // Şimdi ilk geçerli olanı döndür
+            for (const pos of positions) {
+                const ref = barcode.substring(pos.start, pos.end);
+                if (ref && ref.trim().length > 0 && /^[A-Za-z0-9]+$/.test(ref)) {
+                    console.log(`✅ KULLANILAN FORMAT: ${pos.name} = "${ref.trim()}"`);
+                    return ref.trim();
+                }
+            }
+            
+            console.log('❌ 56+ karakter barkod için hiçbir pozisyon uygun değil');
+        }
+        
+        // Format 1: 48+ karakter uzun barkod - 37-48 arası referans
+        if (barcode.length >= 48) {
+            const ref1 = barcode.substring(37, 48);
+            if (ref1 && ref1.trim().length > 0) {
+                console.log('Format 1 kullanıldı (48+ karakter):', ref1.trim());
+                return ref1.trim();
+            }
+        }
+        
+        // Format 2: 30+ karakter uzun barkod - farklı pozisyon dene
+        if (barcode.length >= 30) {
+            // Son 11 karakteri dene
+            const ref2 = barcode.substring(barcode.length - 11);
+            if (ref2 && ref2.trim().length > 0 && /^[A-Za-z0-9]+$/.test(ref2)) {
+                console.log('Format 2a kullanıldı (son 11 karakter):', ref2.trim());
+                return ref2.trim();
+            }
+            
+            // Ortadaki kısmı dene (15-26 arası)
+            if (barcode.length >= 26) {
+                const ref3 = barcode.substring(15, 26);
+                if (ref3 && ref3.trim().length > 0 && /^[A-Za-z0-9]+$/.test(ref3)) {
+                    console.log('Format 2b kullanıldı (15-26 arası):', ref3.trim());
+                    return ref3.trim();
+                }
+            }
+        }
+        
+        // Format 3: Orta uzunlukta barkod (20-29 karakter)
+        if (barcode.length >= 20 && barcode.length <= 29) {
+            // Son 10 karakteri dene
+            const ref4 = barcode.substring(barcode.length - 10);
+            if (ref4 && ref4.trim().length > 0 && /^[A-Za-z0-9]+$/.test(ref4)) {
+                console.log('Format 3 kullanıldı (son 10 karakter):', ref4.trim());
+                return ref4.trim();
+            }
+        }
+        
+        // Format 4: Kısa barkod veya manuel giriş (10-19 karakter)
+        if (barcode.length >= 10 && barcode.length <= 19) {
+            // Tüm barkodu referans olarak kullan
+            if (/^[A-Za-z0-9]+$/.test(barcode)) {
+                console.log('Format 4 kullanıldı (tüm barkod):', barcode.trim());
+                return barcode.trim();
+            }
+        }
+        
+        // Format 5: Çok kısa ama geçerli görünen kodlar (6-9 karakter)
+        if (barcode.length >= 6 && barcode.length <= 9) {
+            if (/^[A-Za-z0-9]+$/.test(barcode)) {
+                console.log('Format 5 kullanıldı (kısa kod):', barcode.trim());
+                return barcode.trim();
+            }
+        }
+        
+        // Hiçbir format uymazsa null döndür
+        console.log('Hiçbir format uygun değil, barkod parse edilemedi');
+        return null;
+    }
+
+    // Barkoddan TÜM olası referans numaralarını çıkar
+    function extractAllPossibleReferences(barcode) {
+        console.log('🔍 TÜM olası referanslar çıkarılıyor...');
+        console.log(`📏 Giriş uzunluğu: ${barcode.length} karakter`);
+        console.log(`📄 İlk 30 karakter: "${barcode.substring(0, 30)}..."`);
+        const allRefs = [];
+        
+        // 25+ karakter barkodlar için dinamik pozisyonlar
+        if (barcode.length >= 25) {
+            console.log(`📏 Barkod uzunluğu: ${barcode.length} - Dinamik pozisyonlar hesaplanıyor...`);
+            
+            const len = barcode.length;
+            const positions = [];
+            
+            // 1. Öncelikli pozisyonlar (bilinen formatlar)
+            if (len >= 56) {
+                positions.push({name: `${len-11}-${len} (son 11)`, start: len-11, end: len, priority: 1});
+                positions.push({name: '37-48 (klasik)', start: 37, end: 48, priority: 2});
+            }
+            
+            // 2. Son N karakter pozisyonları (farklı uzunluklar)
+            for (let i = 6; i <= 15; i++) {
+                if (len >= i) {
+                    positions.push({
+                        name: `${len-i}-${len} (son ${i})`,
+                        start: len-i, 
+                        end: len,
+                        priority: i === 11 ? 1 : (i === 10 ? 2 : 3)
+                    });
+                }
+            }
+            
+            // 3. Orta pozisyonlar (barkodun ortasından)
+            const middle = Math.floor(len / 2);
+            for (let size = 8; size <= 12; size++) {
+                const start = Math.max(0, middle - Math.floor(size/2));
+                const end = Math.min(len, start + size);
+                if (end - start >= 6) {
+                    positions.push({
+                        name: `${start}-${end} (orta ${size})`,
+                        start: start,
+                        end: end,
+                        priority: 3
+                    });
+                }
+            }
+            
+            // 4. Başlangıç pozisyonları  
+            for (let start = 0; start <= 20; start += 5) {
+                for (let size = 8; size <= 12; size++) {
+                    const end = start + size;
+                    if (end <= len && start < len - 10) {
+                        positions.push({
+                            name: `${start}-${end} (başlangıç)`,
+                            start: start,
+                            end: end,
+                            priority: 4
+                        });
+                    }
+                }
+            }
+            
+            // 5. Özel pozisyonlar (klasik formatlardan)
+            const specialPositions = [
+                {start: 35, size: 11, name: 'özel-35'},
+                {start: 40, size: 11, name: 'özel-40'}, 
+                {start: 30, size: 11, name: 'özel-30'},
+                {start: 25, size: 11, name: 'özel-25'},
+            ];
+            
+            for (const special of specialPositions) {
+                const end = special.start + special.size;
+                if (end <= len) {
+                    positions.push({
+                        name: `${special.start}-${end} (${special.name})`,
+                        start: special.start,
+                        end: end,
+                        priority: 3
+                    });
+                }
+            }
+            
+            console.log(`🎯 ${len} karakter barkod için ${positions.length} pozisyon oluşturuldu`);
+            
+                         // Duplicate kontrolü ile pozisyonları işle
+             const uniqueRefs = new Map(); // Duplicate kontrolü için
+             
+             for (const pos of positions) {
+                 const ref = barcode.substring(pos.start, pos.end);
+                 if (ref && ref.trim().length >= 6 && /^[A-Za-z0-9]+$/.test(ref)) {
+                     const cleanRef = ref.trim();
+                     
+                     // Aynı referans daha önce bulunmuş mu kontrol et
+                     if (!uniqueRefs.has(cleanRef)) {
+                         uniqueRefs.set(cleanRef, {
+                             ref: cleanRef,
+                             position: pos.name,
+                             priority: pos.priority || 3
+                         });
+                         
+                         allRefs.push({
+                             ref: cleanRef,
+                             position: pos.name,
+                             priority: pos.priority || 3
+                         });
+                     }
+                 }
+             }
+             
+             console.log(`✅ ${allRefs.length} benzersiz referans bulundu:`, allRefs.map(r => `${r.ref} (${r.position})`));
+        } else if (barcode.length >= 10) {
+            // Kısa barkodlar için (10-24 karakter)
+            console.log(`📏 Kısa barkod (${barcode.length} karakter) - Basit pozisyonlar`);
+            
+            // Tüm barkodu dene
+            allRefs.push({
+                ref: barcode.trim(),
+                position: 'tam barkod',
+                priority: 1
+            });
+            
+            // Son kısımları dene
+            for (let i = 6; i <= Math.min(12, barcode.length); i++) {
+                const ref = barcode.substring(barcode.length - i);
+                if (ref && /^[A-Za-z0-9]+$/.test(ref)) {
+                    allRefs.push({
+                        ref: ref.trim(),
+                        position: `son ${i} karakter`,
+                        priority: 2
+                    });
+                }
+            }
+        }
+        
+        // Alternatif formatları da ekle
+        if (allRefs.length > 0) {
+            const baseRef = allRefs[0].ref; // İlk referansı baz al
+            const alternatives = [
+                baseRef.padStart(12, '0'), // Önüne sıfır ekle
+                baseRef.substring(1),      // İlk karakteri çıkar
+                baseRef.substring(0, 10),  // İlk 10 karakter
+                baseRef.substring(2),      // İlk 2 karakteri çıkar
+            ];
+            
+            for (const alt of alternatives) {
+                if (alt && alt.length >= 6 && !allRefs.some(r => r.ref === alt)) {
+                    allRefs.push({
+                        ref: alt,
+                        position: 'alternatif',
+                        priority: 4
+                    });
+                }
+            }
+        }
+        
+        // Önceliğe göre sırala
+        allRefs.sort((a, b) => a.priority - b.priority);
+        
+        console.log('📋 Bulunan tüm referanslar:', allRefs);
+        return allRefs;
+    }
+
+    // Tüm referansları sırayla dene (rekursif)
+    function tryAllReferences(allRefs, originalBarcode, currentIndex) {
+        if (currentIndex >= allRefs.length) {
+            console.log('❌ TÜM referanslar denendi, hiçbiri bulunamadı!');
+            showAlert(`Hiçbir referans formatı bulunamadı. Barkod: ${originalBarcode.substring(0, 20)}...`, 'error');
+            clearLastScannedProduct();
+            return;
+        }
+        
+        const currentRef = allRefs[currentIndex];
+        console.log(`🔍 Deneniyor [${currentIndex + 1}/${allRefs.length}]: "${currentRef.ref}" (${currentRef.position})`);
+        
+        const apiUrl = `/Product/GetProductIdByReferenceNo?referenceNo=${currentRef.ref}`;
+        
+        fetch(apiUrl)
+            .then(response => {
+                console.log(`📡 API yanıt [${currentIndex + 1}]: status ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                if (data.productId) {
+                    console.log(`✅ ÜRÜN BULUNDU! Referans: "${currentRef.ref}" (${currentRef.position})`);
+                    console.log('🎉 Product ID:', data.productId);
+                    
+                    // Okutulan ürünü kaydet
+                    setLastScannedProduct(currentRef.ref, originalBarcode);
+                    
+                    // Ürün detaylarını güncelle ve stok düşür
+                    updateProductDetails(data);
+                    performStockDeduction(data.productId, currentRef.ref);
+                } else {
+                    console.log(`❌ Bulunamadı [${currentIndex + 1}]: "${currentRef.ref}"`);
+                    // Sonrakini dene
+                    tryAllReferences(allRefs, originalBarcode, currentIndex + 1);
+                }
+            })
+            .catch(error => {
+                console.error(`🚨 API Hatası [${currentIndex + 1}]:`, error);
+                // Hata olursa sonrakini dene
+                tryAllReferences(allRefs, originalBarcode, currentIndex + 1);
+            });
+    }
+
+              function setLastScannedProduct(referenceNo, fullBarcode) {
+         const timestamp = new Date().toLocaleString('tr-TR');
+         lastScannedProduct = {
+             referenceNo: referenceNo,
+             fullBarcode: fullBarcode,
+             timestamp: timestamp,
+             status: 'processing',
+             id: Date.now()
+         };
+         
+         localStorage.setItem('lastScannedProduct', JSON.stringify(lastScannedProduct));
+         updateLastScannedProduct();
+     }
+
+     function clearLastScannedProduct() {
+         lastScannedProduct = null;
+         localStorage.removeItem('lastScannedProduct');
+         updateLastScannedProduct();
+     }
+
+     function updateLastScannedProduct() {
+         const container = document.getElementById('lastScannedProduct');
+         
+         if (!lastScannedProduct) {
+             container.innerHTML = `
+                 <div class="no-items">
+                     <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                     Henüz barkod okutulmadı
+                 </div>
+             `;
+             return;
+         }
+         
+         const statusConfig = getStatusConfig(lastScannedProduct.status || 'processing');
+         container.innerHTML = `
+             <div class="product-card">
+                 <div class="product-header">
+                     <div class="product-reference">
+                         ${lastScannedProduct.referenceNo}
+                     </div>
+                     <div class="product-status" style="background: ${statusConfig.color}; color: white;">
+                         <i class="${statusConfig.icon}" style="margin-right: 0.3rem;"></i>
+                         ${statusConfig.text}
+                     </div>
+                 </div>
+                 
+                 <div class="product-time">
+                     ${lastScannedProduct.timestamp}
+                 </div>
+             </div>
+         `;
+     }
+
+     function getStatusConfig(status) {
+         switch(status) {
+             case 'success':
+                 return {
+                     color: '#2ed573',
+                     icon: 'fas fa-check',
+                     text: 'Başarılı'
+                 };
+             case 'error':
+                 return {
+                     color: '#ff6b6b',
+                     icon: 'fas fa-times',
+                     text: 'Hata'
+                 };
+             case 'processing':
+             default:
+                 return {
+                     color: '#ffa502',
+                     icon: 'fas fa-spinner fa-spin',
+                     text: 'İşleniyor'
+                 };
+         }
+     }
+
+     function performStockDeduction(productId, referenceNo) {
+         // Form data hazırla
+         const formData = new FormData();
+         formData.append('productId', productId);
+         formData.append('quantityToDeduct', 1); // Default 1 adet düş
+         
+         // Anti-forgery token'ı bul ve ekle
+         const token = document.querySelector('input[name="__RequestVerificationToken"]');
+         if (token) {
+             formData.append('__RequestVerificationToken', token.value);
+         }
+
+         // AJAX ile stok düşürme işlemi
+         fetch('/Product/VisStockDeduction', {
+             method: 'POST',
+             body: formData,
+             headers: {
+                 'X-Requested-With': 'XMLHttpRequest'
+             }
+         })
+                   .then(response => {
+              if (response.ok) {
+                  // Başarılı - ürün durumunu güncelle
+                  updateProductStatus(referenceNo, 'success');
+                  showSuccessMessage(`${referenceNo} - Stok başarıyla düşürüldü!`);
+                  
+                  // Input'a tekrar focus ver
+                  document.getElementById('barcodeInput').focus();
+              } else {
+                  // Hata durumu
+                  updateProductStatus(referenceNo, 'error');
+                  showAlert("Stok düşürme işlemi başarısız!", 'error');
+                  clearLastScannedProduct();
+              }
+          })
+          .catch(error => {
+              console.error('Stok düşürme hatası:', error);
+              updateProductStatus(referenceNo, 'error');
+              showAlert("Sistem hatası oluştu!", 'error');
+              clearLastScannedProduct();
+          });
+     }
+
+     function updateProductDetails(productData) {
+         // Basit güncelleme - sadece durum değişikliği
+         if (lastScannedProduct && lastScannedProduct.referenceNo === productData.referenceNumber) {
+             localStorage.setItem('lastScannedProduct', JSON.stringify(lastScannedProduct));
+             updateLastScannedProduct();
+         }
+     }
+
+     function updateProductStatus(referenceNo, status) {
+         // Son eklenen ürünün durumunu güncelle
+         if (lastScannedProduct && lastScannedProduct.referenceNo === referenceNo) {
+             lastScannedProduct.status = status;
+             localStorage.setItem('lastScannedProduct', JSON.stringify(lastScannedProduct));
+             updateLastScannedProduct();
+         }
+     }
+
+     function showSuccessMessage(message) {
+         // Başarı mesajı göster
+         const existingMessage = document.querySelector('.success-message');
+         if (existingMessage) {
+             existingMessage.remove();
+         }
+
+         const successDiv = document.createElement('div');
+         successDiv.className = 'success-message';
+         successDiv.innerHTML = `
+             <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+             ${message}
+         `;
+         
+         const container = document.querySelector('.barcode-container');
+         container.insertBefore(successDiv, container.firstChild);
+
+         // 3 saniye sonra mesajı kaldır
+         setTimeout(() => {
+             successDiv.remove();
+         }, 3000);
+     }
+
+     function showAlert(message, type) {
+         // Basit alert göster
+         alert(message);
+     }
+
+    // Sayfa focus'unu koru
+    window.addEventListener('focus', function() {
+        document.getElementById('barcodeInput').focus();
+    });
+
+    // Klavye kısayolları
+    document.addEventListener('keydown', function(e) {
+        // ESC tuşu ile input'u temizle
+        if (e.key === 'Escape') {
+            document.getElementById('barcodeInput').value = '';
+            document.getElementById('barcodeInput').focus();
+        }
+        
+                 // F5 ile sayfayı yenile ve son ürünü temizle
+         if (e.key === 'F5' && e.ctrlKey) {
+             localStorage.removeItem('lastScannedProduct');
+         }
+    });
+</script>

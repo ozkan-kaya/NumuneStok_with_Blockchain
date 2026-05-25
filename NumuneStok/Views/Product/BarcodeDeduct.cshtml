@@ -1,0 +1,28 @@
+﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container text-center mt-5">
+    <h2>Barkod ile Stok Düşme</h2>
+    <form id="barcodeForm">
+        <div class="mt-4">
+            <input type="text" id="barcodeInput" class="form-control text-center" placeholder="Barkodu okutunuz"
+                   style="font-size: 1.5rem; height: 100px;" autofocus />
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Gönder</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('barcodeForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const barcode = document.getElementById('barcodeInput').value;
+
+        if (barcode.length >= 48) {
+            const referenceNo = barcode.substring(37, 48);
+            window.location.href = `@Url.Action("StockDeductionBarcode", "Product")?referenceNo=${referenceNo}`;
+        } else {
+            alert("Barkod eksik veya hatalı. Lütfen tekrar deneyin.");
+        }
+    });
+</script>

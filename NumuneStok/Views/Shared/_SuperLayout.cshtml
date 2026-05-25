@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <meta name="description" content="Inncrea - Admin Template">
+    <meta name="keywords" content="admin, estimates, bootstrap, business, corporate, creative, management, minimal, modern,  html5, responsive">
+    <meta name="author" content="Inncrea - Bootstrap Admin Template">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Numune Stok Takip</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="~/inventory/assets/img/favicon-32x32.png">
+
+    <link rel="stylesheet" href="~/inventory/assets/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="~/inventory/assets/css/animate.css">
+
+    <link rel="stylesheet" href="~/inventory/assets/css/dataTables.bootstrap4.min.css">
+
+    <link rel="stylesheet" href="~/inventory/assets/plugins/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="~/inventory/assets/plugins/fontawesome/css/all.min.css">
+
+    <link rel="stylesheet" href="~/inventory/assets/css/style.css">
+</head>
+<body>
+    <div id="global-loader">
+        <div class="whirly-loader"> </div>
+    </div>
+
+    <div class="main-wrapper">
+
+        <div class="header">
+
+            <div class="header-left active">
+                <a asp-area="" asp-controller="Home" asp-action="Super" class="logo">
+                    <img src="~/inventory/assets/img/inncrea.png" alt="">
+                </a>
+                <a href="Index" class="logo-small">
+                    <img src="~/inventory/assets/img/logo-small-1.png" alt="">
+                </a>
+                <a id="toggle_btn" href="javascript:void(0);">
+                </a>
+            </div>
+
+            <a id="mobile_btn" class="mobile_btn" href="#sidebar">
+                <span class="bar-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </a>
+
+            <ul class="nav user-menu">
+                <li class="nav-item">
+                    <div class="top-nav-search">
+                        <a href="javascript:void(0);" class="responsive-search">
+                            <i class="fa fa-search"></i>
+                        </a>
+                        <form action="#">
+                            <div class="searchinputs">
+                                <input type="text" placeholder="Search Here ...">
+                                <div class="search-addon">
+                                    <span><img src="~/inventory/assets/img/icons/closes.svg" alt="img"></span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </li>
+
+                <!-- Çıkış Yap Butonu -->
+                <li class="nav-item">
+                    <a href="javascript:void(0);" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        <i class="fa fa-sign-out-alt"></i> Çıkış Yap
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Logout Formu -->
+            <form id="logout-form" action="/Account/Logout" method="post" style="display: none;">
+                @Html.AntiForgeryToken()
+            </form>
+
+
+        </div>
+
+
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-inner slimscroll">
+                <div id="sidebar-menu" class="sidebar-menu">
+                    <ul>
+                        <!-- Ana Sayfa -->
+                        <li>
+                            <a href="~/Home/Super">
+                                <i class="fas fa-home"></i>
+                                <span>Ana Sayfa</span>
+                            </a>
+                        </li>
+
+                        <!-- Roller -->
+                        <li>
+                            <a href="~/Roles/Index"><img src="~/inventory/assets/img/icons/time.svg" alt="img"><span>Roller</span></a>
+                        </li>
+
+                        <!-- Kategoriler -->
+                        <li class="submenu">
+                            <a href="javascript:void(0);">
+                                <i class="fas fa-list"></i>
+                                <span>Kategoriler</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <ul>
+                                <li><a href="/Categories/Index">Kategoriler Listesi</a></li>
+                                <li><a href="/Categories/Create">Kategori Ekle</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Ürünler -->
+                        <li class="submenu">
+                            <a href="javascript:void(0);">
+                                <i class="fas fa-box"></i>
+                                <span>Ürünler</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <ul>
+                                <li><a href="/Product/Index">Tüm Ürünler</a></li>
+                                <li><a href="/Product/Create">Yeni Ürün Ekle</a></li>
+                                <li><a href="/Product/ExpiringStock">Miadı Yaklaşan Ürünler</a></li>
+                                <li><a href="/Product/LowStock">Düşük Stoklu Ürünler</a></li>
+                            </ul>
+                        </li>
+                        <!-- Siparişler -->
+                        <li class="submenu">
+                            <a href="javascript:void(0);">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span>Siparişler</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <ul>
+                                <li><a href="/Product/OrderList">Sipariş Listesi</a></li>
+                                <li><a href="/Product/ProductTestRequirement">Test Sayısı Hesap</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Kullanıcı İşlemleri -->
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="~/inventory/assets/img/icons/users1.svg" alt="img"><span>Kullanıcılar</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="/User/Index">Kullanıcı Listesi</a></li> <!-- Kullanıcı listesi eklendi -->
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="page-wrapper pagehead">
+            <div class="content">
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        @RenderBody()
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="~/inventory/assets/js/jquery-3.6.0.min.js"></script>
+
+    <script src="~/inventory/assets/js/feather.min.js"></script>
+
+    <script src="~/inventory/assets/js/jquery.slimscroll.min.js"></script>
+
+    <script src="~/inventory/assets/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/inventory/assets/js/script.js"></script>
+</body>
+</html>

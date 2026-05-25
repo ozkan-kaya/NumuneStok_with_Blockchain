@@ -1,0 +1,67 @@
+﻿@model NumuneStok.Models.User
+@*<h2>Kayıt Ol</h2>
+    <form asp-action="Register" method="post">
+        <div>
+            <label>Kullanıcı Adı</label>
+            <input type="text" name="username" required />
+        </div>
+        <div>
+            <label>Şifre</label>
+            <input type="password" name="password" required />
+        </div>
+        <div>
+            <label>Yetki</label>
+            <select name="roleId" required>
+                @foreach (var role in ViewBag.Roles)
+                {
+                    <option value="@role.Id">@role.RoleName</option>
+                }
+            </select>
+        </div>
+        <button type="submit">Kayıt Ol</button>
+    </form>
+    <p>@ViewBag.Error</p>*@
+<div class="account-content">
+    <div class="login-wrapper">
+        <div class="login-content">
+            <div class="login-userset">
+                @*<div class="login-logo">
+                    <img src="~/inventory/assets/img/inncrea.png" alt="logo">
+                </div>*@
+                <div class="login-userheading">
+                    <h3>Kullanıcı Ekle</h3>
+                </div>
+                <form asp-action="Register" method="post">
+                    <div class="form-login">
+                        <label>Kullanıcı Adı</label>
+                        <div class="form-addons">
+                            <input type="text" name="username" class="form-control" placeholder="Kullanıcı adınızı giriniz" required>
+                            <img src="~/inventory/assets/img/icons/users1.svg" alt="icon">
+                        </div>
+                    </div>
+                    <div class="form-login">
+                        <label>Şifre</label>
+                        <div class="pass-group">
+                            <input type="password" name="password" class="form-control pass-input" placeholder="Şifrenizi giriniz" required>
+                            <span class="fas toggle-password fa-eye-slash"></span>
+                        </div>
+                    </div>
+                    <div class="form-login">
+                        <label>Yetki</label>
+                        <div class="form-addons">
+                            <select name="roleId" class="form-control" required>
+                                @foreach (var role in ViewBag.Roles)
+                                {
+                                    <option value="@role.Id">@role.RoleName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-login">
+                        <button type="submit" class="btn btn-login">Kullanıcı Ekle</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

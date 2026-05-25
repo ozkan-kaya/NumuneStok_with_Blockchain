@@ -1,0 +1,88 @@
+﻿@model NumuneStok.Models.ChildProduct
+
+
+<div class="d-flex justify-content-between align-items-center">
+    <h2>@ViewBag.ProductName - Stok Ekle</h2>
+    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#barcodeModal">
+        Barkod ile Stok Ekle
+    </button>
+</div>
+
+<br />
+<form asp-action="AddChildProduct">
+    <input type="hidden" asp-for="ProductId" />
+    <div class="form-group">
+        Lot Numarası
+        <input asp-for="LotNumber" id="LotNumber" class="form-control" />
+        <span asp-validation-for="LotNumber" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        Son Tüketim Tarihi
+        <input asp-for="ExpirationDate" type="text" id="ExpirationDate" class="form-control" placeholder="gg.aa.yyyy formatında giriniz" />
+        <span asp-validation-for="ExpirationDate" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        Adet
+        <input asp-for="Quantity" class="form-control" />
+        <span asp-validation-for="Quantity" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-success">Ekle</button>
+</form>
+
+<!-- Barkod Pop-up Modal -->
+<div class="modal fade" id="barcodeModal" tabindex="-1" role="dialog" aria-labelledby="barcodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="barcodeModalLabel">Barkod Okut</h5>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="barcodeInput" class="form-control text-center" placeholder="Barkodu okutunuz" autofocus />
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="closeModalButton" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery ve Bootstrap (Doğru sıralamaya dikkat edin) -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+
+<script>document.getElementById('barcodeInput').addEventListener('keyup', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+
+            const barcode = event.target.value.trim();
+
+            if (barcode.length >= 44) {
+                const lotNumber = barcode.substring(18, 26); // LOT
+                const dateCode = barcode.substring(27, 34); // Tarih kodu
+
+
+                const day = dateCode.substring(5, 7); // Gün kısmı
+                const month = dateCode.substring(3, 5); // Ay kısmı
+                const year = "20" + dateCode.substring(1, 3); // Yılın ilk iki hanesi
+
+                // gg.aa.yyyy formatında ExpirationDate alanına aktar
+                const expirationDate = `${day}.${month}.${year}`;
+
+                // Alanlara değerleri aktar
+                document.getElementById('LotNumber').value = lotNumber;
+                document.getElementById('ExpirationDate').value = expirationDate;
+
+                // Kapatma butonunu programatik olarak tıklat
+                document.getElementById('closeModalButton').click();
+
+                // Barkod alanını temizle
+                event.target.value = "";
+            } else {
+                // Barkod yetersiz uzunlukta
+                alert("Barkod eksik veya hatalı. Lütfen tekrar deneyin.");
+                event.target.value = ""; // Barkod alanını temizle
+            }
+        }
+    });</script>

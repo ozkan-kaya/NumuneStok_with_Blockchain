@@ -1,0 +1,513 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .dashboard-container {
+        padding: 2rem;
+        background: #fafafa;
+        min-height: 100vh;
+    }
+
+    .dashboard-title {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .dashboard-title h1 {
+        font-size: 2rem;
+        font-weight: 400;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .dashboard-title p {
+        color: #777;
+        font-size: 0.95rem;
+        font-weight: 300;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 1rem;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+        min-height: 140px;
+    }
+
+    .action-card-compact {
+        min-height: 110px;
+        padding: 1.2rem;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .action-card-compact .action-card-icon {
+        width: 3.5rem;
+        height: 3.5rem;
+        font-size: 2rem;
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+
+    .action-card-compact .action-card-content {
+        flex: 1;
+    }
+
+    .action-card:hover {
+        text-decoration: none;
+        transform: translateY(-2px);
+        border-color: #ccc;
+    }
+
+    .action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.3) 100%);
+    }
+
+    .action-card-add {
+        background: #d4edda;
+        color: #1e7e34;
+    }
+
+    .action-card-add::before {
+        background: #28a745;
+    }
+
+    .action-card-remove {
+        background: #fff3cd;
+        color: #b8860b;
+    }
+
+    .action-card-remove::before {
+        background: #ffc107;
+    }
+
+    .action-card-all {
+        background: #f8d7da;
+        color: #8b1538;
+    }
+
+    .action-card-all::before {
+        background: #dc3545;
+    }
+
+    .action-card-low {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .action-card-low::before {
+        background: #17a2b8;
+    }
+
+    .action-card-warning {
+        background: #fff0e6;
+        color: #d84315;
+    }
+
+    .action-card-warning::before {
+        background: #ff5722;
+    }
+
+    .action-card-icon {
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+        background: rgba(255,255,255,0.7);
+        padding: 1rem;
+        border-radius: 50%;
+        width: 4rem;
+        height: 4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e0e0e0;
+    }
+
+    .action-card-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.025em;
+    }
+
+    .action-card-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.75;
+        margin: 0;
+        font-weight: 400;
+        line-height: 1.4;
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: left;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #007bff;
+    }
+
+    .stats-card-users::before { 
+        background: #6c757d;
+    }
+    
+    .stats-card-products::before { 
+        background: #28a745;
+    }
+    
+    .stats-card-total::before { 
+        background: #6f42c1;
+    }
+    
+    .stats-card-categories::before { 
+        background: #fd7e14;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-2px);
+        border-color: #ccc;
+    }
+
+    .stats-number {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 0.5rem;
+        display: block;
+        letter-spacing: -0.02em;
+    }
+
+    .stats-label {
+        font-size: 0.9rem;
+        color: #666;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    .stats-icon {
+        font-size: 1.5rem;
+        opacity: 0.8;
+        color: #888;
+        background: rgba(0,0,0,0.05);
+        padding: 0.8rem;
+        border-radius: 50%;
+        width: 3rem;
+        height: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(0,0,0,0.1);
+        flex-shrink: 0;
+    }
+
+    .stats-content {
+        flex: 1;
+    }
+
+    .warning-card {
+        background: #fff3cd;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #e0e0e0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .warning-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #ffc107;
+    }
+
+    .warning-number {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #856404;
+        display: block;
+        margin-bottom: 0.2rem;
+    }
+
+    .warning-label {
+        color: #856404;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .warning-product {
+        color: #856404;
+        font-size: 0.75rem;
+        opacity: 0.8;
+        font-style: italic;
+    }
+
+    .row {
+        margin: 0 -8px;
+    }
+
+    .col-md-6, .col-lg-3, .col-12 {
+        padding: 0 8px;
+    }
+
+    @@media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+        
+        .action-card {
+            padding: 1.2rem;
+        }
+
+        .action-card-icon {
+            width: 3rem;
+            height: 3rem;
+            font-size: 1.8rem;
+            padding: 0.8rem;
+        }
+        
+        .stats-number {
+            font-size: 1.8rem;
+        }
+
+        .stats-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            font-size: 1.2rem;
+            padding: 0.6rem;
+        }
+
+        .dashboard-title h1 {
+            font-size: 1.5rem;
+        }
+
+        .action-card-title {
+            font-size: 1.1rem;
+        }
+
+        .warning-number {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-title">
+        <h1><strong>Laboratuvar Stok Takip Sistemi</strong></h1>
+        <p>Sivas Numune Hastanesi Merkez Laboratuvarı</p>
+    </div>
+
+    <!-- Action Cards Row -->
+    <div class="row">
+        <div class="col-md-6">
+            <a href="/Product/BarcodeAdd" class="action-card action-card-add action-card-compact">
+                <div class="action-card-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="action-card-content">
+                    <div class="action-card-title">Stok Ekle</div>
+                    <div class="action-card-subtitle">Yeni ürün eklemek için tıklayın</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6">
+            <a href="/Product/BarcodeDeduct" class="action-card action-card-remove action-card-compact">
+                <div class="action-card-icon">
+                    <i class="fas fa-minus"></i>
+                </div>
+                <div class="action-card-content">
+                    <div class="action-card-title">Stok Düş</div>
+                    <div class="action-card-subtitle">Stoktan ürün çıkarmak için tıklayın</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- All Products & Expiring Products Row -->
+    <div class="row">
+        <div class="col-md-6">
+            <a href="/Product/Index" class="action-card action-card-all action-card-compact">
+                <div class="action-card-icon">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="action-card-content">
+                    <div class="action-card-title">Tüm Ürünler</div>
+                    <div class="action-card-subtitle">Envanterdeki tüm ürünleri görüntüleyin</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6">
+            <a href="/Product/ExpiringStock" class="action-card action-card-warning action-card-compact">
+                <div class="action-card-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="action-card-content">
+                    <div class="action-card-title">Miadı Yaklaşan Ürünler</div>
+                    <div class="action-card-subtitle">@ViewBag.Expired adet ürünün miadı yaklaşıyor</div>
+                    <div id="expiring-product-name" style="font-size: 0.75rem; color: inherit; opacity: 0.8; margin-top: 0.3rem; font-style: italic; height: 1rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; transition: opacity 0.3s ease;">
+                        <!-- Ürün isimleri buraya gelecek -->
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards Row -->
+    <div class="row">
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card stats-card-users">
+                <div class="stats-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-content">
+                    <span class="stats-number">@ViewBag.UserCount</span>
+                    <div class="stats-label">Kullanıcı Sayısı</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card stats-card-products">
+                <div class="stats-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="stats-content">
+                    <span class="stats-number">@ViewBag.ProductVariety</span>
+                    <div class="stats-label">Ürün Çeşiti</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card stats-card-total">
+                <div class="stats-icon">
+                    <i class="fas fa-cubes"></i>
+                </div>
+                <div class="stats-content">
+                    <span class="stats-number">@ViewBag.TotalProductCount</span>
+                    <div class="stats-label">Toplam Ürün Sayısı</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card stats-card-categories">
+                <div class="stats-icon">
+                    <i class="fas fa-folder"></i>
+                </div>
+                <div class="stats-content">
+                    <span class="stats-number">10</span>
+                    <div class="stats-label">Kategori Sayısı</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Low Stock Card -->
+    <div class="row">
+        <div class="col-12">
+            <a href="/Product/LowStock" class="action-card action-card-low action-card-compact">
+                <div class="action-card-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="action-card-content">
+                    <div class="action-card-title">Düşük Stoklu Ürünler</div>
+                    <div class="action-card-subtitle">@ViewBag.Low adet ürün düşük stokta</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer style="background: #f8f9fa; padding: 2rem 0; margin-top: 3rem; border-top: 1px solid #e0e0e0;">
+    <div style="max-width: 1200px; margin: 0 auto; text-align: center; padding: 0 2rem;">
+        <p style="color: #666; margin: 0; font-size: 0.9rem; font-weight: 400;">
+            © 2025 Numune Stok Takip Uygulaması. Tüm hakları saklıdır. Inncrea Yazılım Bilişim LTD. ŞTİ.
+        </p>
+    </div>
+</footer>
+
+<!-- Font Awesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Miadı yaklaşan ürün isimlerini al
+        const expiredProductNames = @Html.Raw(Json.Serialize(ViewBag.ExpiredProductNames ?? new List<string>()));
+        const productNameElement = document.getElementById('expiring-product-name');
+        
+        if (expiredProductNames && expiredProductNames.length > 0) {
+            let currentIndex = 0;
+            
+            // İlk ürün ismini göster
+            productNameElement.textContent = expiredProductNames[currentIndex];
+            
+            // 2 saniye aralıklarla ürün isimlerini değiştir
+            setInterval(function() {
+                currentIndex = (currentIndex + 1) % expiredProductNames.length;
+                
+                // Smooth transition efekti
+                productNameElement.style.opacity = '0.3';
+                
+                setTimeout(function() {
+                    productNameElement.textContent = expiredProductNames[currentIndex];
+                    productNameElement.style.opacity = '0.8';
+                }, 200); // 200ms sonra yeni ismi göster
+                
+            }, 2000); // Her 2 saniyede bir değiştir
+        } else {
+            // Ürün yoksa mesaj göster
+            productNameElement.textContent = 'Miadı yaklaşan ürün bulunmuyor';
+            productNameElement.style.opacity = '0.6';
+        }
+    });
+</script>

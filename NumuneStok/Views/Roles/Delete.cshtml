@@ -1,0 +1,11 @@
+﻿@model NumuneStok.Models.Role
+
+<h3>Bu rolü silmek istediğinizden emin misiniz?</h3>
+<div>
+    <h4>Rol Adı: @Model.RoleName</h4>
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger">Sil</button>
+</form>

@@ -1,0 +1,42 @@
+﻿@page
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container text-center mt-5">
+    <h2>Barkod ile Stok Ekle</h2>
+    Barkod Girdisi için Form
+    <form id="barcodeForm">
+        <div class="mt-4">
+            <input type="text" id="barcodeInput" class="form-control text-center" placeholder="Barkodu okutunuz"
+                   style="font-size: 1.5rem; height: 100px;" autofocus />
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Gönder</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('barcodeForm').addEventListener('submit', function (event) {
+        event.preventDefault(); // Sayfanın yenilenmesini engeller
+        const barcode = document.getElementById('barcodeInput').value;
+
+        // Barkod uzunluğunu kontrol ediyoruz
+        if (barcode.length >= 48) {
+            const referenceNo = barcode.substring(37, 48); // 37-48 arası REFERANS NO
+            const lotNumber = barcode.substring(18, 26); // LOT NUMARASI (örnek)
+            const expirationDateString = barcode.substring(27, 34); // SKT TARİHİ (örnek)
+
+            // Tarih formatını ayarlama (ddMMyy formatı)
+            const day = expirationDateString.substring(5, 7);
+            const month = expirationDateString.substring(3, 5);
+            const year = '20' + expirationDateString.substring(1, 3); // 20YY formatında varsayıyoruz
+            const expirationDate = `${day}.${month}.${year}`; // YYYY-MM-DD formatına çevir
+
+            // Ürün ekleme sayfasına yönlendirme
+            window.location.href = `@Url.Action("AddChildProductDirectly", "Product")?referenceNo=${referenceNo}&lotNumber=${lotNumber}&expirationDate=${expirationDate}`;
+
+        } else {
+            alert("Barkod eksik veya hatalı. Lütfen tekrar deneyin.");
+        }
+    });
+</script>

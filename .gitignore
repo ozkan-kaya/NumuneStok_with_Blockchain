@@ -1,0 +1,29 @@
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Mono auto generated files
+mono_crash.*
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Re]leases/
+x64/
+x86/
+build/
+bin/
+obj/
+
+# Visual Studio 2015/2017 cache directory
+.vs/
+
+# macOS files
+.DS_Store
+
+# SQL local dumps (optional, uncomment if you don't want to commit any sql files)
+# *.sql

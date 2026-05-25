@@ -1,0 +1,33 @@
+@model IEnumerable<NumuneStok.Models.Role>
+
+<div class="d-flex justify-content-between mb-3">
+    <div>
+        <h2>Roller Listesi</h2>
+    </div>
+    <div class="text-end">
+        <a asp-action="Create" class="btn btn-success">Yeni Rol Ekle</a>
+    </div>
+</div>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Rol Adı</th>
+            <th scope="col">İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var role in Model)
+        {
+            <tr>
+                <td>@role.Id</td>
+                <td>@role.RoleName</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@role.Id" class="btn btn-submit me-2 text-white">Düzenle</a>
+                    <a asp-action="Delete" asp-route-id="@role.Id" class="btn btn-cancel text-white">Sil</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

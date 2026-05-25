@@ -1,0 +1,292 @@
+﻿@page
+@{
+    Layout = "~/Views/Shared/_VisitorLayout.cshtml";
+}
+
+<style>
+    .visitor-container {
+        height: 100vh;
+        background: linear-gradient(135deg, #fff8f3 0%, #fff3e6 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+        overflow: hidden;
+    }
+
+    .welcome-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+        animation: fadeInDown 0.8s ease-out;
+        flex-shrink: 0;
+    }
+
+    .welcome-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #fe9f43;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(254, 159, 67, 0.2);
+    }
+
+    .welcome-subtitle {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 1rem;
+    }
+
+    .current-time {
+        background: #fe9f43;
+        color: white;
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(254, 159, 67, 0.3);
+    }
+
+    .buttons-container {
+        width: 100%;
+        max-width: 700px;
+        animation: fadeInUp 0.8s ease-out 0.3s both;
+        flex-shrink: 0;
+    }
+
+    .action-btn {
+        background: linear-gradient(135deg, #fe9f43 0%, #ff6b35 100%);
+        border: none;
+        border-radius: 20px;
+        padding: 2rem;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        min-height: 130px;
+        transition: all 0.4s ease;
+        box-shadow: 0 10px 30px rgba(254, 159, 67, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s;
+    }
+
+    .action-btn:hover::before {
+        left: 100%;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(254, 159, 67, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn.secondary {
+        background: linear-gradient(135deg, #ff8c42 0%, #fe9f43 100%);
+        box-shadow: 0 10px 30px rgba(255, 140, 66, 0.3);
+    }
+
+    .action-btn.secondary:hover {
+        box-shadow: 0 20px 40px rgba(255, 140, 66, 0.4);
+    }
+
+    .btn-icon {
+        font-size: 2.2rem;
+        margin-right: 1.2rem;
+        animation: pulse 2s infinite;
+    }
+
+    .btn-content {
+        text-align: left;
+    }
+
+    .btn-title {
+        display: block;
+        font-size: 1.5rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .btn-description {
+        display: block;
+        font-size: 1rem;
+        opacity: 0.9;
+        font-weight: 400;
+    }
+
+
+
+    @@keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+    }
+
+    @@keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .visitor-container {
+            padding: 0.5rem;
+        }
+        
+        .welcome-title {
+            font-size: 1.5rem;
+        }
+        
+        .welcome-subtitle {
+            font-size: 0.9rem;
+        }
+        
+        .action-btn {
+            padding: 1rem;
+            min-height: 80px;
+        }
+        
+        .btn-title {
+            font-size: 1.1rem;
+        }
+        
+        .btn-description {
+            font-size: 0.75rem;
+        }
+        
+        .btn-icon {
+            font-size: 1.5rem;
+            margin-right: 0.8rem;
+        }
+    }
+</style>
+
+<div class="visitor-container">
+    <!-- Hoş Geldin Başlığı -->
+    <div class="welcome-header">
+        <div class="welcome-title">
+            <i class="fas fa-user-friends" style="margin-right: 1rem;"></i>
+            Personel Paneli
+        </div>
+        <div class="welcome-subtitle">
+            Stok takip işlemlerinizi gerçekleştirin
+        </div>
+        <div class="current-time" id="currentTime">
+            <i class="fas fa-clock" style="margin-right: 0.5rem;"></i>
+            <span id="timeDisplay"></span>
+        </div>
+    </div>
+
+    <!-- Ana Butonlar -->
+    <div class="buttons-container">
+        <a asp-controller="Product" asp-action="VisitorProduct" class="action-btn">
+            <i class="fas fa-list btn-icon"></i>
+            <div class="btn-content">
+                <span class="btn-title">Manuel Stok Düşürme</span>
+                <span class="btn-description">Ürün listesinden seçerek stok düşürün</span>
+            </div>
+        </a>
+        
+        <a asp-controller="Product" asp-action="BarcodeStockDeduction" class="action-btn secondary">
+            <i class="fas fa-qrcode btn-icon"></i>
+            <div class="btn-content">
+                <span class="btn-title">Barkod ile Stok Düşürme</span>
+                <span class="btn-description">Hızlı barkod okutma ile stok düşürün</span>
+            </div>
+        </a>
+    </div>
+
+
+</div>
+
+<script>
+    // Saati güncelle
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleString('tr-TR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        document.getElementById('timeDisplay').textContent = timeString;
+    }
+
+    // Sayfa yüklendiğinde ve her dakika saati güncelle
+    document.addEventListener('DOMContentLoaded', function() {
+        updateTime();
+        setInterval(updateTime, 60000);
+    });
+
+    // Butonlara tıklanma efekti
+    document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            // Ripple efekti
+            const ripple = document.createElement('span');
+            ripple.style.position = 'absolute';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(255,255,255,0.6)';
+            ripple.style.transform = 'scale(0)';
+            ripple.style.animation = 'ripple 0.6s linear';
+            ripple.style.left = (e.clientX - e.target.offsetLeft) + 'px';
+            ripple.style.top = (e.clientY - e.target.offsetTop) + 'px';
+            
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+</script>

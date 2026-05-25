@@ -1,0 +1,41 @@
+﻿@model NumuneStok.Models.Product
+
+<h2>@Model.ProductName - Stok Düşme</h2>
+
+<form asp-action="StockDeduction" method="post">
+    <input type="hidden" name="productId" value="@Model.Id" />
+    <div class="form-group row align-items-center">
+        <label for="quantityToDeduct" class="col-form-label col-sm-4" style="font-weight: bold;">Düşülecek Stok Miktarını Giriniz:</label>
+        <div class="col-sm-6">
+            <div style="margin-bottom: 8px; color: red; font-size: 0.9rem;">
+                <strong>Mevcut Toplam Stok: @Model.TotalQuantity adet</strong>
+            </div>
+            <input type="number" name="quantityToDeduct" class="form-control" min="1" max="@Model.TotalQuantity" required />
+        </div>
+        <div class="col-sm-2">
+            <button type="submit" class="btn btn-primary">Stok Düş</button>
+        </div>
+    </div>
+
+</form>
+<br />
+<h3>Alt Ürünler (Son Kullanma Tarihine Göre)</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Lot Numarası</th>
+            <th>Son Kullanma Tarihi</th>
+            <th>Stok Miktarı</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var child in Model.ChildProducts)
+        {
+            <tr>
+                <td>@child.LotNumber</td>
+                <td>@child.ExpirationDate.ToString("dd.MM.yyyy")</td>
+                <td>@child.Quantity</td>
+            </tr>
+        }
+    </tbody>
+</table>

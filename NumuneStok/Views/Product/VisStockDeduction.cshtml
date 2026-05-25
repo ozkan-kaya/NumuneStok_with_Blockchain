@@ -1,0 +1,32 @@
+﻿@model NumuneStok.Models.Product
+@{
+    Layout = "~/Views/Shared/_VisitorLayout.cshtml";
+}
+<h2>@Model.ProductName - Stok Düşme</h2>
+
+<form asp-action="VisStockDeduction" method="post">
+    <input type="hidden" name="productId" value="@Model.Id" />
+    <p>Bu işlemle, stoktan <strong style="color:red">1 adet düşülecektir</strong>.</p>
+    <button type="submit" class="btn btn-primary">Stok Düş</button>
+</form>
+<br />
+<h3>Alt Ürünler (Son Kullanma Tarihine Göre)</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Lot Numarası</th>
+            <th>Son Kullanma Tarihi</th>
+            <th>Stok Miktarı</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var child in Model.ChildProducts)
+        {
+            <tr>
+                <td>@child.LotNumber</td>
+                <td>@child.ExpirationDate.ToString("dd.MM.yyyy")</td>
+                <td>@child.Quantity</td>
+            </tr>
+        }
+    </tbody>
+</table>

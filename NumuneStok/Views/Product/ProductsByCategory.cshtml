@@ -1,0 +1,76 @@
+﻿@model IEnumerable<NumuneStok.Models.Product>
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS Kütüphaneleri -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.1.2/css/buttons.dataTables.css">
+
+    <!-- JavaScript Kütüphaneleri -->
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.dataTables.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.print.min.js"></script>
+</head>
+
+
+<div class="d-flex justify-content-between mb-3">
+    <div>
+        <h2>@ViewData["CategoryName"]: Kategorisindeki Ana Ürünler</h2>
+    </div>
+    <div class="text-end">
+        <a asp-action="Create" class="btn btn-success">Yeni Ürün Ekle</a>
+    </div>
+</div>
+
+<table id="example" class="display nowrap" style="width:100%">
+    <thead>
+        <tr>
+            <th scope="col">Kategori</th>
+            <th scope="col">Ürün Adı</th>
+            <th scope="col">Referans Numarası</th>
+            @*<th scope="col">Barkod</th>*@
+            <th scope="col">Lokasyon</th>
+            <th scope="col">Miktar</th>
+            <th scope="col">İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>@product.Category.CategoryName</td>
+                <td>@product.ProductName</td>
+                <td>@product.ReferenceNumber</td>
+                @*<td>@item.Barcode</td>*@
+                <td>@product.Location</td>
+                <td>@product.TotalQuantity</td>
+                <td>
+                    <a asp-action="StockDeduction" asp-route-id="@product.Id" type="button" class="btn btn-primary" style="font-weight: bold;">Stok Düş</a>
+                    <a asp-action="ManageStock" asp-route-id="@product.Id" type="button" class="btn btn-primary" style="font-weight: bold;">Stok Ekle</a>
+                    <a asp-action="Edit" asp-route-id="@product.Id" type="button" class="btn btn-primary" style="font-weight: bold;">Düzenle</a>
+                    <a asp-action="Delete" asp-route-id="@product.Id" type="button" class="btn btn-secondary" style="font-weight: bold;">Sil</a>
+
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<!-- DataTables Başlatma -->
+<script>new DataTable('#example', {
+            layout: {
+                topStart: {
+                    buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+                }
+            }
+        });</script>

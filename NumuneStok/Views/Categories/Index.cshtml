@@ -1,0 +1,37 @@
+﻿@model IEnumerable<NumuneStok.Models.Category>
+
+<div class="d-flex justify-content-between mb-3">
+    <div>
+        <h2>Kategoriler Listesi</h2>
+    </div>
+    <div class="text-end">
+        <a asp-action="Create" class="btn btn-success">Yeni Kategori Ekle</a>
+    </div>
+</div>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Kategori Adı</th>
+            <th scope="col">Açıklama</th>
+            <th scope="col">İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var category in Model)
+        {
+            <tr>
+                <td>@category.Id</td>
+                <td>@category.CategoryName</td>
+                <td>@category.Description</td>
+                <td>
+                    <a asp-controller="Product" asp-action="ProductsByCategory" asp-route-id="@category.Id" class="btn btn-submit me-2 text-white">Ürünleri Gör</a>
+                    @*<a asp-action="ProductsByCategory" asp-route-id="@category.Id" class="btn btn-submit me-2 text-white">Ürünleri Gör</a>*@
+                    <a asp-action="Edit" asp-route-id="@category.Id" class="btn btn-submit me-2 text-white">Düzenle</a>
+                    <a asp-action="Delete" asp-route-id="@category.Id" class="btn btn-cancel me-2 text-white">Sil</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,38 @@
+﻿@model IEnumerable<NumuneStok.Models.User>
+
+<div class="d-flex justify-content-between mb-3">
+    <div>
+        <h2>Kullanıcı Listesi</h2>
+    </div>
+    <div class="text-end">
+        <a asp-controller="Account" asp-action="Register" class="btn btn-success">Yeni Kullanıcı Ekle</a>
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Kullanıcı Adı</th>
+            <th>Rol</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Id</td>
+                <td>@user.UserName</td>
+                <td>@user.Role?.RoleName</td>
+                <td>
+                    <form asp-action="Delete" method="post" style="display:inline;">
+                        <input type="hidden" name="id" value="@user.Id" />
+                        <button type="submit" class="btn btn-cancel me-2 text-white">Sil</button>
+                    </form>
+                </td>
+                <td>DİKKAT: Unutmayın butona bastığınız an uyarısız siler.</td>
+            </tr>
+        }
+    </tbody>
+</table>
