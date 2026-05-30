@@ -1,4 +1,4 @@
-﻿@model IEnumerable<NumuneStok.Models.Product>
+@model IEnumerable<NumuneStok.Models.Product>
 
 
     <head>
@@ -41,6 +41,7 @@
                 @*<th scope="col">Lokasyon</th>*@
                 <th scope="col">Miktar</th>
                 <th scope="col">İşlemler</th>
+                <th scope="col">Blockchain</th>
             </tr>
         </thead>
         <tbody>
@@ -58,7 +59,11 @@
                         <a asp-action="ManageStock" asp-route-id="@item.Id" type="button" class="btn btn-primary" style="font-weight: bold;">Stok Ekle</a>
                         <a asp-action="Edit" asp-route-id="@item.Id" type="button" class="btn btn-primary" style="font-weight: bold;">Düzenle</a>
                         <a asp-action="Delete" asp-route-id="@item.Id" type="button" class="btn btn-secondary" style="font-weight: bold;">Sil</a>
-
+                    </td>
+                    <td>
+                        <a asp-action="ProductBlockchainHistory" asp-route-id="@item.Id" class="btn btn-outline-primary" style="font-weight: bold;">
+                            Blockchain
+                        </a>
                     </td>
                 </tr>
             }

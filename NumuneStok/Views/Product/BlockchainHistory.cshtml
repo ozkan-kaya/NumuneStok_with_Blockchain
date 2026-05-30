@@ -1,0 +1,264 @@
+@model List<NumuneStok.Services.BlockchainRecord>
+
+@{
+    ViewData["Title"] = "Blockchain Doğrulama Geçmişi";
+    var lotNumber = ViewBag.LotNumber as string;
+}
+
+<style>
+    /* ─── Blockchain Timeline Stilleri ─── */
+    .bc-header {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        border-radius: 12px;
+        padding: 28px 32px;
+        margin-bottom: 28px;
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .bc-header h2 {
+        margin: 0 0 6px 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .bc-header .lot-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 6px;
+        padding: 4px 14px;
+        font-family: 'Courier New', monospace;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #e94560;
+        letter-spacing: 1px;
+    }
+
+    .bc-header .subtitle {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: 4px;
+    }
+
+    /* Timeline Container */
+    .bc-timeline {
+        position: relative;
+        padding-left: 40px;
+        margin: 0 0 40px 20px;
+    }
+
+    .bc-timeline::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: linear-gradient(to bottom, #e94560, #0f3460);
+        border-radius: 3px;
+    }
+
+    /* Timeline Item */
+    .bc-timeline-item {
+        position: relative;
+        margin-bottom: 24px;
+        padding-left: 24px;
+    }
+
+    .bc-timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -46px;
+        top: 16px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 3px #e94560, 0 0 12px rgba(233, 69, 96, 0.4);
+        z-index: 1;
+    }
+
+    .bc-timeline-item.action-added::before {
+        background: #27ae60;
+        box-shadow: 0 0 0 3px #27ae60, 0 0 12px rgba(39, 174, 96, 0.4);
+    }
+
+    .bc-timeline-item.action-deducted::before {
+        background: #e94560;
+        box-shadow: 0 0 0 3px #e94560, 0 0 12px rgba(233, 69, 96, 0.4);
+    }
+
+    .bc-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 18px 22px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #ddd;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .bc-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .bc-card.card-added {
+        border-left-color: #27ae60;
+    }
+
+    .bc-card.card-deducted {
+        border-left-color: #e94560;
+    }
+
+    .bc-card .action-badge {
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .bc-card .action-badge.badge-added {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .bc-card .action-badge.badge-deducted {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .bc-card .card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .bc-card .card-row .label {
+        font-size: 0.75rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .bc-card .card-row .value {
+        font-size: 0.85rem;
+        color: #333;
+        font-weight: 500;
+    }
+
+    .bc-card .wallet-address {
+        font-family: 'Courier New', monospace;
+        font-size: 0.78rem;
+        color: #0f3460;
+        word-break: break-all;
+    }
+
+    .bc-card .timestamp {
+        font-size: 0.85rem;
+        color: #555;
+        font-weight: 500;
+    }
+
+    /* Empty State */
+    .bc-empty {
+        text-align: center;
+        padding: 60px 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 2px dashed #dee2e6;
+    }
+
+    .bc-empty .icon {
+        font-size: 3rem;
+        margin-bottom: 12px;
+    }
+
+    .bc-empty h4 {
+        color: #495057;
+        margin-bottom: 8px;
+    }
+
+    .bc-empty p {
+        color: #868e96;
+        font-size: 0.9rem;
+    }
+
+    /* Record Count Badge */
+    .bc-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(233, 69, 96, 0.1);
+        color: #e94560;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+</style>
+
+<!-- ─── Header ─── -->
+<div class="bc-header">
+    <h2>🔗 Blockchain Doğrulama Geçmişi</h2>
+    <div style="margin-top: 8px;">
+        <span class="subtitle">Lot Numarası:</span>
+        <span class="lot-badge">@lotNumber</span>
+    </div>
+    <div class="subtitle" style="margin-top: 10px;">
+        <span class="bc-count">
+            📋 @Model.Count kayıt bulundu
+        </span>
+        &nbsp;|&nbsp; Tüm veriler değiştirilemez blokzincirinden alınmıştır.
+    </div>
+</div>
+
+<!-- ─── Timeline ─── -->
+@if (Model.Count > 0)
+{
+    <div class="bc-timeline">
+        @foreach (var record in Model)
+        {
+            var isAdded = record.Action == "Added";
+            var itemClass = isAdded ? "action-added" : "action-deducted";
+            var cardClass = isAdded ? "card-added" : "card-deducted";
+            var badgeClass = isAdded ? "badge-added" : "badge-deducted";
+            var actionText = isAdded ? "✅ Stok Eklendi" : "📤 Stok Düşüldü";
+            var actionIcon = isAdded ? "+" : "−";
+
+            <div class="bc-timeline-item @itemClass">
+                <div class="bc-card @cardClass">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="action-badge @badgeClass">@actionText</span>
+                        <span class="timestamp">🕐 @record.Timestamp.ToString("dd.MM.yyyy HH:mm:ss")</span>
+                    </div>
+                    <div class="card-row">
+                        <div>
+                            <div class="label">Cüzdan Adresi (İşlemi Yapan)</div>
+                            <div class="wallet-address">@record.UserAddress</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="bc-empty">
+        <div class="icon">🔍</div>
+        <h4>Blockchain Kaydı Bulunamadı</h4>
+        <p>Bu lot numarası için henüz blokzincirine kaydedilmiş bir işlem bulunmamaktadır.</p>
+    </div>
+}
+
+<div style="margin-top: 20px;">
+    <a href="javascript:history.back()" class="btn btn-secondary">← Geri Dön</a>
+</div>

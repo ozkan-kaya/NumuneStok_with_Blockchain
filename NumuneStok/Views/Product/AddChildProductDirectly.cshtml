@@ -1,30 +1,39 @@
-﻿@model NumuneStok.Models.ChildProduct
+@model NumuneStok.Models.ChildProduct
 
 <div class="container">
     <h2>@ViewBag.ProductName - Stok Ekle</h2>
     <strong style="color:red;">Güncel Stok Miktarı: @ViewBag.TotalQuantity</strong>
     <br />
     <br />
+    @if (ViewBag.BlockchainAvailable != null && !(bool)ViewBag.BlockchainAvailable)
+    {
+        <div class="alert alert-danger">
+            <strong>Sistem Uyarısı:</strong> Blockchain ağına erişilemiyor. Veri tutarlılığını sağlamak amacıyla geçici olarak stok ekleme işlemi durdurulmuştur. Lütfen daha sonra tekrar deneyin veya sistem yöneticisiyle iletişime geçin.
+        </div>
+    }
+
     <form asp-action="SaveChildProductDirectly" method="post">
-        <input type="hidden" asp-for="ProductId" value="@ViewBag.ProductId" />
+        <fieldset disabled="@((ViewBag.BlockchainAvailable != null && !(bool)ViewBag.BlockchainAvailable) ? "disabled" : null)">
+            <input type="hidden" asp-for="ProductId" value="@ViewBag.ProductId" />
 
-        <div class="form-group">
-            <label>Lot Numarası</label>
-            <input type="text" asp-for="LotNumber" class="form-control" value="@ViewBag.LotNumber" />
-        </div>
+            <div class="form-group">
+                <label>Lot Numarası</label>
+                <input type="text" asp-for="LotNumber" class="form-control" value="@ViewBag.LotNumber" />
+            </div>
 
-        <div class="form-group">
-            <label>Son Kullanma Tarihi</label>
-            <input type="text" asp-for="ExpirationDate" class="form-control" value="@ViewBag.ExpirationDate" />
-        </div>
+            <div class="form-group">
+                <label>Son Kullanma Tarihi</label>
+                <input type="text" asp-for="ExpirationDate" class="form-control" value="@ViewBag.ExpirationDate" />
+            </div>
 
-        <div class="form-group">
-            <label>Adet</label>
-            <input type="text" asp-for="Quantity" class="form-control"/>
-        </div>
+            <div class="form-group">
+                <label>Adet</label>
+                <input type="text" asp-for="Quantity" class="form-control"/>
+            </div>
 
-        <!-- Additional fields as needed -->
+            <!-- Additional fields as needed -->
 
-        <button type="submit" class="btn btn-primary">Ekle</button>
+            <button type="submit" class="btn btn-primary">Ekle</button>
+        </fieldset>
     </form>
 </div>

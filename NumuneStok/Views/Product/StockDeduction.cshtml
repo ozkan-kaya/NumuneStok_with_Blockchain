@@ -1,22 +1,33 @@
-﻿@model NumuneStok.Models.Product
+@model NumuneStok.Models.Product
 
-<h2>@Model.ProductName - Stok Düşme</h2>
+@if (ViewBag.BlockchainAvailable != null && !(bool)ViewBag.BlockchainAvailable)
+{
+    <div class="alert alert-danger">
+        <strong>Sistem Uyarısı:</strong> Blockchain ağına erişilemiyor. Veri tutarlılığını sağlamak amacıyla geçici olarak stok düşme işlemi durdurulmuştur. Lütfen daha sonra tekrar deneyin veya sistem yöneticisiyle iletişime geçin.
+    </div>
+}
 
 <form asp-action="StockDeduction" method="post">
-    <input type="hidden" name="productId" value="@Model.Id" />
-    <div class="form-group row align-items-center">
-        <label for="quantityToDeduct" class="col-form-label col-sm-4" style="font-weight: bold;">Düşülecek Stok Miktarını Giriniz:</label>
-        <div class="col-sm-6">
-            <div style="margin-bottom: 8px; color: red; font-size: 0.9rem;">
+    <fieldset disabled="@((ViewBag.BlockchainAvailable != null && !(bool)ViewBag.BlockchainAvailable) ? "disabled" : null)">
+        <input type="hidden" name="productId" value="@Model.Id" />
+        
+        <!-- 1. Satır: Başlık (sol) ve Input (sağ) -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0">@Model.ProductName - Stok Düşme</h2>
+            <div class="d-flex align-items-center gap-2">
+                <label for="quantityToDeduct" style="font-weight: bold; white-space: nowrap; margin-bottom: 0;">Düşülecek Stok Miktarını Giriniz:</label>
+                <input type="number" name="quantityToDeduct" class="form-control" style="width: 150px;" min="1" max="@Model.TotalQuantity" required />
+            </div>
+        </div>
+
+        <!-- 2. Satır: Mevcut Toplam Stok (sol) ve Stok Düş butonu (sağ) -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div style="color: red; font-size: 1.1rem;">
                 <strong>Mevcut Toplam Stok: @Model.TotalQuantity adet</strong>
             </div>
-            <input type="number" name="quantityToDeduct" class="form-control" min="1" max="@Model.TotalQuantity" required />
+            <button type="submit" class="btn btn-primary" style="width: 150px;">Stok Düş</button>
         </div>
-        <div class="col-sm-2">
-            <button type="submit" class="btn btn-primary">Stok Düş</button>
-        </div>
-    </div>
-
+    </fieldset>
 </form>
 <br />
 <h3>Alt Ürünler (Son Kullanma Tarihine Göre)</h3>
@@ -39,3 +50,4 @@
         }
     </tbody>
 </table>
+

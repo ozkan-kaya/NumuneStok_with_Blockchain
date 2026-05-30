@@ -1,4 +1,4 @@
-﻿@model NumuneStok.Models.ChildProduct
+@model NumuneStok.Models.ChildProduct
 
 
 <div class="d-flex justify-content-between align-items-center">
@@ -9,25 +9,35 @@
 </div>
 
 <br />
+
+@if (ViewBag.BlockchainAvailable != null && !(bool)ViewBag.BlockchainAvailable)
+{
+    <div class="alert alert-danger">
+        <strong>Sistem Uyarısı:</strong> Blockchain ağına erişilemiyor. Veri tutarlılığını sağlamak amacıyla geçici olarak stok ekleme işlemi durdurulmuştur. Lütfen daha sonra tekrar deneyin veya sistem yöneticisiyle iletişime geçin.
+    </div>
+}
+
 <form asp-action="AddChildProduct">
     <input type="hidden" asp-for="ProductId" />
-    <div class="form-group">
-        Lot Numarası
-        <input asp-for="LotNumber" id="LotNumber" class="form-control" />
-        <span asp-validation-for="LotNumber" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        Son Tüketim Tarihi
-        <input asp-for="ExpirationDate" type="text" id="ExpirationDate" class="form-control" placeholder="gg.aa.yyyy formatında giriniz" />
-        <span asp-validation-for="ExpirationDate" class="text-danger"></span>
-    </div>
+    <fieldset disabled="@((ViewBag.BlockchainAvailable != null && !(bool)ViewBag.BlockchainAvailable) ? "disabled" : null)">
+        <div class="form-group">
+            Lot Numarası
+            <input asp-for="LotNumber" id="LotNumber" class="form-control" />
+            <span asp-validation-for="LotNumber" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            Son Tüketim Tarihi
+            <input asp-for="ExpirationDate" type="text" id="ExpirationDate" class="form-control" placeholder="gg.aa.yyyy formatında giriniz" />
+            <span asp-validation-for="ExpirationDate" class="text-danger"></span>
+        </div>
 
-    <div class="form-group">
-        Adet
-        <input asp-for="Quantity" class="form-control" />
-        <span asp-validation-for="Quantity" class="text-danger"></span>
-    </div>
-    <button type="submit" class="btn btn-success">Ekle</button>
+        <div class="form-group">
+            Adet
+            <input asp-for="Quantity" class="form-control" />
+            <span asp-validation-for="Quantity" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-success">Ekle</button>
+    </fieldset>
 </form>
 
 <!-- Barkod Pop-up Modal -->

@@ -8,6 +8,7 @@ contract SupplyChainLedger {
     struct Record {
         string lotNumber;
         ActionType action;
+        uint256 quantity;
         uint256 timestamp;
         address user;
     }
@@ -16,20 +17,21 @@ contract SupplyChainLedger {
     mapping(string => Record[]) private lotHistory;
     
     // Event to be emitted whenever a new record is added
-    event StateChanged(string indexed lotNumber, ActionType action, uint256 timestamp, address indexed user);
+    event StateChanged(string indexed lotNumber, ActionType action, uint256 quantity, uint256 timestamp, address indexed user);
     
     // Function to log an action (Added or Deducted) for a specific lot number
-    function logAction(string memory _lotNumber, ActionType _action) public {
+    function logAction(string memory _lotNumber, ActionType _action, uint256 _quantity) public {
         Record memory newRecord = Record({
             lotNumber: _lotNumber,
             action: _action,
+            quantity: _quantity,
             timestamp: block.timestamp,
             user: msg.sender
         });
         
         lotHistory[_lotNumber].push(newRecord);
         
-        emit StateChanged(_lotNumber, _action, block.timestamp, msg.sender);
+        emit StateChanged(_lotNumber, _action, _quantity, block.timestamp, msg.sender);
     }
     
     // Function to retrieve the complete history of a specific lot number
