@@ -37,20 +37,20 @@ Sistem iki katmanlı bir mimari kullanır:
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                   Kullanıcı (Tarayıcı)                    │
+│                   Kullanıcı (Tarayıcı)                   │
 └───────────────────────────┬──────────────────────────────┘
                             │ HTTP
 ┌───────────────────────────▼──────────────────────────────┐
-│              ASP.NET Core MVC (.NET 8)                    │
+│              ASP.NET Core MVC (.NET 8)                   │
 │                                                          │
 │  ProductController  ←→  BlockchainService (Nethereum)    │
 │  BlockchainExplorerController                            │
-│           │                        │                    │
+│           │                        │                     │
 │    MySQL / EF Core          Hardhat Lokal Node           │
 │    (Operasyonel Veri)       JSON-RPC :8545               │
-│                                    │                    │
+│                                    │                     │
 │                         SupplyChainLedger.sol            │
-│                         (Akıllı Sözleşme)               │
+│                         (Akıllı Sözleşme)                │
 └──────────────────────────────────────────────────────────┘
 ```
 
