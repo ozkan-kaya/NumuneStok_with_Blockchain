@@ -1,0 +1,1548 @@
+@model List<NumuneStok.Models.Product>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Tedarik Zinciri Simülasyonu";
+    var products = Model.Where(p => p.ChildProducts != null && p.ChildProducts.Any()).ToList();
+    var suppliers = ViewBag.Suppliers as List<NumuneStok.Models.Supplier> ?? new List<NumuneStok.Models.Supplier>();
+    var carriers = ViewBag.Carriers as List<NumuneStok.Models.Carrier> ?? new List<NumuneStok.Models.Carrier>();
+    var warehouseLocations = ViewBag.WarehouseLocations as List<NumuneStok.Models.WarehouseLocation> ?? new List<NumuneStok.Models.WarehouseLocation>();
+    var laboratoryLocations = ViewBag.LaboratoryLocations as List<NumuneStok.Models.LaboratoryLocation> ?? new List<NumuneStok.Models.LaboratoryLocation>();
+    var defaultCarrier = carriers.FirstOrDefault();
+    var defaultWarehouse = warehouseLocations.FirstOrDefault();
+    var defaultLaboratory = laboratoryLocations.FirstOrDefault();
+}
+
+<style>
+    .sim-container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .sim-header {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .sim-header h2 {
+        margin: 0 0 4px 0;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .sim-header p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    /* ─── Ürün Seçim Formu / Sihirbaz ─── */
+    .sim-form {
+        background: #fff;
+        border-radius: 10px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .sim-form label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 6px;
+    }
+
+    .btn-simulate {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        padding: 10px 28px;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-simulate:hover {
+        background: #1d4ed8;
+    }
+
+    .btn-simulate:disabled {
+        background: #94a3b8;
+        cursor: not-allowed;
+    }
+
+    /* Wizard Stepper */
+    .wizard-stepper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        position: relative;
+        background: #f8fafc;
+        padding: 16px 24px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .wizard-stepper::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 40px;
+        right: 40px;
+        height: 3px;
+        background: #e2e8f0;
+        transform: translateY(-50%);
+        z-index: 0;
+    }
+
+    .wizard-stepper-progress {
+        position: absolute;
+        top: 50%;
+        left: 40px;
+        height: 3px;
+        background: #2563eb;
+        transform: translateY(-50%);
+        z-index: 0;
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+
+    .wizard-step-node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+    }
+
+    .wizard-step-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #fff;
+        border: 3px solid #cbd5e1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #64748b;
+        transition: all 0.3s ease;
+    }
+
+    .wizard-step-node.active .wizard-step-circle {
+        border-color: #2563eb;
+        background: #eff6ff;
+        color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+    }
+
+    .wizard-step-node.completed .wizard-step-circle {
+        border-color: #10b981;
+        background: #ecfdf5;
+        color: #10b981;
+    }
+
+    .wizard-step-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #64748b;
+        margin-top: 6px;
+        transition: color 0.3s ease;
+    }
+
+    .wizard-step-node.active .wizard-step-label {
+        color: #2563eb;
+    }
+
+    .wizard-step-node.completed .wizard-step-label {
+        color: #10b981;
+    }
+
+    /* Panels */
+    .wizard-panel {
+        display: none;
+        animation: fadeInSlide 0.4s ease forwards;
+        min-height: 180px;
+    }
+
+    .wizard-panel.active {
+        display: block;
+    }
+
+    @@keyframes fadeInSlide {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Supplier Grid */
+    .supplier-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .supplier-card {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px 12px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .supplier-card:hover {
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+    }
+
+    .supplier-card.selected {
+        border-color: #2563eb;
+        background: #eff6ff;
+        box-shadow: 0 0 0 1px #2563eb, 0 4px 6px -1px rgba(37, 99, 235, 0.1);
+    }
+
+    .supplier-card-icon {
+        font-size: 1.8rem;
+    }
+
+    .supplier-card-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    /* Product Search */
+    .product-search-container {
+        position: relative;
+        margin-bottom: 16px;
+    }
+
+    .product-search-input {
+        width: 100%;
+        padding: 10px 14px 10px 38px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .product-search-input:focus {
+        border-color: #2563eb;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .product-search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1rem;
+        color: #64748b;
+        pointer-events: none;
+    }
+
+    .selected-product-card {
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 8px;
+        padding: 12px 14px;
+        margin-top: 14px;
+        display: none;
+        align-items: center;
+        gap: 12px;
+        animation: fadeInSlide 0.3s ease;
+    }
+
+    .selected-product-card.active {
+        display: flex;
+    }
+
+    .selected-product-card-icon {
+        font-size: 1.6rem;
+        color: #059669;
+    }
+
+    .selected-product-card-details {
+        flex: 1;
+    }
+
+    .selected-product-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #065f46;
+    }
+
+    .selected-product-meta {
+        font-size: 0.78rem;
+        color: #047857;
+        margin-top: 2px;
+    }
+
+    .lot-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        background: #e2e8f0;
+        color: #475569;
+        white-space: nowrap;
+        margin-top: 6px;
+    }
+
+    .lot-status-badge.state-produced { background: #dbeafe; color: #1d4ed8; }
+    .lot-status-badge.state-shipped { background: #ffedd5; color: #c2410c; }
+    .lot-status-badge.state-received { background: #dcfce7; color: #166534; }
+    .lot-status-badge.state-transferred { background: #ede9fe; color: #6d28d9; }
+    .lot-status-badge.state-consumed { background: #e5e7eb; color: #374151; }
+    .lot-status-badge.state-none { background: #f1f5f9; color: #64748b; }
+
+    /* Qty Controller */
+    .qty-controller {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin: 20px 0;
+    }
+
+    .qty-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 2px solid #e2e8f0;
+        background: #fff;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #475569;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .qty-btn:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+        color: #1e293b;
+    }
+
+    .qty-input-styled {
+        width: 90px;
+        text-align: center;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #0f172a;
+        border: none;
+        background: transparent;
+        -moz-appearance: textfield;
+    }
+
+    .qty-input-styled::-webkit-outer-spin-button,
+    .qty-input-styled::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .qty-input-styled:focus {
+        outline: none;
+    }
+
+    .qty-slider-container {
+        margin: 16px auto 24px auto;
+        max-width: 320px;
+        padding: 0 8px;
+    }
+
+    .qty-slider {
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: #cbd5e1;
+        outline: none;
+        accent-color: #2563eb;
+    }
+
+    /* Destination Card */
+    .destination-container {
+        display: flex;
+        justify-content: center;
+        margin: 16px 0 24px 0;
+    }
+
+    .destination-card {
+        background: #eff6ff;
+        border: 2px solid #2563eb;
+        border-radius: 8px;
+        padding: 16px 20px;
+        text-align: center;
+        max-width: 280px;
+        width: 100%;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.05);
+    }
+
+    .destination-card-icon {
+        font-size: 2rem;
+        margin-bottom: 6px;
+    }
+
+    .destination-card-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1e3a8a;
+    }
+
+    .destination-card-desc {
+        font-size: 0.78rem;
+        color: #3b82f6;
+        margin-top: 2px;
+    }
+
+    /* Active Simulation Panel */
+    .active-sim-panel {
+        display: none;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        animation: fadeInSlide 0.4s ease forwards;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .active-sim-panel.active {
+        display: block;
+    }
+
+    .sim-receipt {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 14px 18px;
+        margin-bottom: 20px;
+    }
+
+    .sim-receipt-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px dashed #e2e8f0;
+        padding-bottom: 6px;
+        margin-bottom: 10px;
+    }
+
+    .sim-receipt-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px 20px;
+    }
+
+    .sim-receipt-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sim-receipt-label {
+        font-size: 0.75rem;
+        color: #64748b;
+    }
+
+    .sim-receipt-value {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-top: 1px;
+    }
+
+    /* Wizard Actions */
+    .wizard-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 16px;
+        margin-top: 16px;
+    }
+
+    .btn-wizard-nav {
+        padding: 8px 18px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn-wizard-prev {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    .btn-wizard-prev:hover {
+        background: #cbd5e1;
+    }
+
+    .btn-wizard-next {
+        background: #2563eb;
+        color: #fff;
+    }
+
+    .btn-wizard-next:hover {
+        background: #1d4ed8;
+    }
+
+    .btn-wizard-next:disabled {
+        background: #cbd5e1;
+        color: #94a3b8;
+        cursor: not-allowed;
+    }
+
+    .sim-mode-badge {
+        font-size: 0.78rem;
+        color: #64748b;
+        background: #f1f5f9;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+    }
+
+    /* ─── Zincir Görselleştirmesi ─── */
+    .chain-visual {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+        border-radius: 10px;
+        padding: 30px 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        position: relative;
+    }
+
+    .chain-node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        flex: 1;
+        z-index: 1;
+    }
+
+    .chain-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 10px;
+        border: 3px solid #e2e8f0;
+        background: #f8fafc;
+        transition: all 0.5s ease;
+    }
+
+    .chain-icon.waiting {
+        border-color: #e2e8f0;
+        background: #f8fafc;
+    }
+
+    .chain-icon.active {
+        border-color: #f59e0b;
+        background: #fef3c7;
+        animation: pulse 1.5s infinite;
+    }
+
+    .chain-icon.done {
+        border-color: #22c55e;
+        background: #dcfce7;
+        animation: none;
+    }
+
+    .chain-icon.error {
+        border-color: #ef4444;
+        background: #fee2e2;
+        animation: none;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+        50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    }
+
+    .chain-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 2px;
+    }
+
+    .chain-sublabel {
+        font-size: 0.75rem;
+        color: #999;
+    }
+
+    .chain-arrow {
+        font-size: 1.4rem;
+        color: #cbd5e1;
+        flex-shrink: 0;
+        margin: 0 -6px;
+        margin-bottom: 28px;
+        z-index: 1;
+        transition: color 0.5s ease;
+    }
+
+    .chain-arrow.done {
+        color: #22c55e;
+    }
+
+    /* ─── İşlem Günlüğü ─── */
+    .sim-log {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px 24px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .sim-log h4 {
+        margin: 0 0 16px 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .log-entries {
+        max-height: 360px;
+        overflow-y: auto;
+    }
+
+    .log-entry {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        animation: fadeIn 0.4s ease;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-entry.success { background: #f0fdf4; border-left: 3px solid #22c55e; }
+    .log-entry.info { background: #eff6ff; border-left: 3px solid #3b82f6; }
+    .log-entry.warning { background: #fef3c7; border-left: 3px solid #f59e0b; }
+    .log-entry.error { background: #fef2f2; border-left: 3px solid #ef4444; }
+
+    .log-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .log-text { flex: 1; }
+    .log-time { font-size: 0.78rem; color: #888; white-space: nowrap; margin-top: 1px; }
+
+    .log-tx {
+        display: inline-block;
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        color: #6366f1;
+        background: #eef2ff;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-top: 4px;
+        word-break: break-all;
+    }
+
+    /* ─── Sonuç Mesajı ─── */
+    .sim-result {
+        text-align: center;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 16px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        display: none;
+    }
+
+    .sim-result.success {
+        display: block;
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #86efac;
+    }
+
+    .sim-result.error {
+        display: block;
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+    }
+</style>
+
+<div class="sim-container">
+
+    @if (ViewBag.BlockchainAvailable != null && !(bool)ViewBag.BlockchainAvailable)
+    {
+        <div class="alert alert-danger">
+            <strong>Sistem Uyarısı:</strong> Blockchain ağına erişilemiyor. Simülasyonu başlatmak için lütfen blockchain node'unu çalıştırın.
+        </div>
+    }
+
+    <!-- Header -->
+    <div class="sim-header">
+        <h2>Tedarik Zinciri Simülasyonu</h2>
+        <p>Bir ürün seçin ve tedarik zinciri sürecini adım adım izleyin. Her aşama gerçek blockchain işlemi olarak kaydedilir.</p>
+    </div>
+
+    <!-- Form (Wizard) -->
+    <div class="sim-form" id="simWizardCard">
+        <!-- Wizard Stepper -->
+        <div class="wizard-stepper">
+            <div class="wizard-stepper-progress" id="wizardProgress"></div>
+            <div class="wizard-step-node active" id="stepNode-1" onclick="goToWizardStep(1)">
+                <div class="wizard-step-circle">1</div>
+                <div class="wizard-step-label">Tedarikçi</div>
+            </div>
+            <div class="wizard-step-node" id="stepNode-2" onclick="goToWizardStep(2)">
+                <div class="wizard-step-circle">2</div>
+                <div class="wizard-step-label">Ürün</div>
+            </div>
+            <div class="wizard-step-node" id="stepNode-3" onclick="goToWizardStep(3)">
+                <div class="wizard-step-circle">3</div>
+                <div class="wizard-step-label">Miktar</div>
+            </div>
+            <div class="wizard-step-node" id="stepNode-4" onclick="goToWizardStep(4)">
+                <div class="wizard-step-circle">4</div>
+                <div class="wizard-step-label">Teslimat</div>
+            </div>
+        </div>
+
+        <!-- Ekran 1: Üretici / Tedarikçi Seçimi -->
+        <div class="wizard-panel active" id="wizardPanel-1">
+            <label style="font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: block; color: #1e293b;">
+                Tedarikçi / Üretici Seçin
+            </label>
+            <div class="supplier-grid">
+                @foreach (var supplier in suppliers)
+                {
+                    <div class="supplier-card" data-id="@supplier.Id" data-value="@supplier.Name" onclick="selectSupplierCard(this)">
+                        <div class="supplier-card-icon">🏭</div>
+                        <div class="supplier-card-name">@supplier.Name</div>
+                    </div>
+                }
+            </div>
+            <input type="hidden" id="simSupplier" value="">
+            <input type="hidden" id="simSupplierId" value="">
+            <input type="hidden" id="simCarrierId" value="@(defaultCarrier?.Id ?? 0)">
+        </div>
+
+        <!-- Ekran 2: Ürün Ara ve Seç -->
+        <div class="wizard-panel" id="wizardPanel-2">
+            <label style="font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: block; color: #1e293b;">
+                Ürün Ara ve Seçin
+            </label>
+            <div class="product-search-container">
+                <span class="product-search-icon">🔍</span>
+                <input type="text" id="simProductInput" class="product-search-input" placeholder="Ürün adı veya Lot numarası yazın..." autocomplete="off" onfocus="showOptions()" oninput="filterOptions()" onblur="hideOptions()" />
+                
+                <input type="hidden" id="simProduct" value="">
+                <input type="hidden" id="simProductLot" value="">
+                <input type="hidden" id="simProductName" value="">
+
+                <div id="simProductDropdown" class="custom-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 250px; overflow-y: auto; background: #fff; border: 1px solid #ddd; z-index: 1000; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); margin-top: 4px;">
+                    @foreach (var p in products)
+                    {
+                        var firstLot = p.ChildProducts.FirstOrDefault();
+                        <div class="dropdown-item" 
+                             style="padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.2s;"
+                             onmouseover="this.style.background='#f8fafc'" 
+                             onmouseout="this.style.background='transparent'"
+                             data-value="@p.Id" 
+                             data-lot="@(firstLot?.LotNumber ?? "")" 
+                             data-name="@p.ProductName"
+                             onmousedown="selectProduct(this, event)">
+                            <div style="font-weight: 600; color: #1e293b;">@p.ProductName</div>
+                            <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">Lot: @(firstLot?.LotNumber ?? "Yok") | Stok: @p.TotalQuantity adet</div>
+                            @if (!string.IsNullOrWhiteSpace(firstLot?.LotNumber))
+                            {
+                                <span class="lot-status-badge state-none" data-lot-status="@firstLot.LotNumber">Zincir: yükleniyor</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Seçilen Ürün Kartı -->
+            <div class="selected-product-card" id="selectedProductCard">
+                <div class="selected-product-card-icon">📦</div>
+                <div class="selected-product-card-details">
+                    <div class="selected-product-title" id="selectedProductTitle">Ürün Seçilmedi</div>
+                    <div class="selected-product-meta" id="selectedProductMeta">Lütfen yukarıdan arama yapıp seçin.</div>
+                    <span class="lot-status-badge state-none" id="selectedLotStatusBadge" style="display:none;">Zincir: bilinmiyor</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ekran 3: Miktar -->
+        <div class="wizard-panel" id="wizardPanel-3">
+            <label style="font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: block; color: #1e293b; text-align: center;">
+                Üretilecek / Taşınacak Miktar
+            </label>
+            
+            <div class="qty-controller">
+                <button type="button" class="qty-btn" onclick="adjustQty(-5)">-5</button>
+                <button type="button" class="qty-btn" onclick="adjustQty(-1)">-</button>
+                <input type="number" id="simQty" class="qty-input-styled" value="10" min="1" max="9999" oninput="validateQtyInput(this)" />
+                <button type="button" class="qty-btn" onclick="adjustQty(1)">+</button>
+                <button type="button" class="qty-btn" onclick="adjustQty(5)">+5</button>
+            </div>
+
+            <div class="qty-slider-container">
+                <input type="range" id="simQtySlider" class="qty-slider" min="1" max="100" value="10" oninput="syncQtyFromSlider(this.value)" />
+            </div>
+        </div>
+
+        <!-- Ekran 4: Teslim Edilecek Yer -->
+        <div class="wizard-panel" id="wizardPanel-4">
+            <label style="font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: block; color: #1e293b; text-align: center;">
+                Teslim Edilecek Hedef Nokta
+            </label>
+            
+            <div class="destination-container">
+                <div class="destination-card">
+                    <div class="destination-card-icon">🏢</div>
+                    <div class="destination-card-title">@(defaultWarehouse?.Name ?? "Merkez Numune Deposu")</div>
+                    <div class="destination-card-desc">Ana giriş ve kabul noktası</div>
+                </div>
+            </div>
+            
+            <input type="hidden" id="simDestination" value="@(defaultWarehouse?.Name ?? "Merkez Numune Deposu")">
+            <input type="hidden" id="simWarehouseId" value="@(defaultWarehouse?.Id ?? 0)">
+            <input type="hidden" id="simLaboratory" value="@(defaultLaboratory?.Name ?? "Klinik Biyokimya Lab.")">
+            <input type="hidden" id="simLaboratoryId" value="@(defaultLaboratory?.Id ?? 0)">
+        </div>
+
+        <!-- Wizard Navigasyon Eylemleri -->
+        <div class="wizard-actions">
+            <div class="sim-mode-badge">
+                Simülasyon Modu: Manuel
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn-wizard-nav btn-wizard-prev" id="btnWizardPrev" onclick="navigateWizard(-1)" style="display: none;">
+                    ← Geri
+                </button>
+                <button type="button" class="btn-wizard-nav btn-wizard-next" id="btnWizardNext" onclick="navigateWizard(1)" disabled>
+                    İlerle →
+                </button>
+                <button type="button" class="btn-simulate" id="btnStartSimulation" onclick="startWizardSimulation()" style="display: none; background: #10b981;">
+                    🏭 Ürünü Üret (Simülasyonu Başlat)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aktif Simülasyon Durum Paneli -->
+    <div class="active-sim-panel" id="simActivePanel">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #1e293b;">
+                Aktif Simülasyon Takibi
+            </h3>
+            <span class="sim-mode-badge">Simülasyon Modu: Manuel</span>
+        </div>
+
+        <!-- Simülasyon Özeti (Receipt) -->
+        <div class="sim-receipt">
+            <div class="sim-receipt-title">Ürün & Süreç Özeti</div>
+            <div class="sim-receipt-grid">
+                <div class="sim-receipt-item">
+                    <span class="sim-receipt-label">Üretici / Tedarikçi</span>
+                    <span class="sim-receipt-value" id="summarySupplier">-</span>
+                </div>
+                <div class="sim-receipt-item">
+                    <span class="sim-receipt-label">Ürün Adı</span>
+                    <span class="sim-receipt-value" id="summaryProductName">-</span>
+                </div>
+                <div class="sim-receipt-item">
+                    <span class="sim-receipt-label">Lot Numarası</span>
+                    <span class="sim-receipt-value" id="summaryLotNumber">-</span>
+                </div>
+                <div class="sim-receipt-item">
+                    <span class="sim-receipt-label">Simüle Edilen Miktar</span>
+                    <span class="sim-receipt-value" id="summaryQty">-</span>
+                </div>
+                <div class="sim-receipt-item" style="grid-column: span 2;">
+                    <span class="sim-receipt-label">Hedef Teslim Noktası</span>
+                    <span class="sim-receipt-value" id="summaryDestination">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Adım Eylem Butonları -->
+        <div class="form-actions" id="actionButtons" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <button class="btn-simulate" id="btnProduce" onclick="triggerStep(0)" style="display: none;">
+                🏭 Ürünü Üret (Tedarikçi)
+            </button>
+            <button class="btn-simulate" id="btnShip" onclick="triggerStep(1)" style="display: none; background: #f59e0b;">
+                🚚 Teslim Et (Kargoya Ver)
+            </button>
+            <button class="btn-simulate" id="btnReceive" onclick="triggerStep(2)" style="display: none; background: #3b82f6;">
+                📦 Depoda Teslim Al
+            </button>
+            
+            <!-- Depo Karar Aşaması (Step 3) -->
+            <button class="btn-simulate" id="btnTransfer" onclick="triggerStep(3)" style="display: none; background: #8b5cf6;">
+                🔄 Laboratuvara Transfer Et
+            </button>
+            <button class="btn-simulate" id="btnCompleteDepot" onclick="triggerStep(5)" style="display: none; background: #10b981;">
+                📦 Depoda Stokta Beklet (Tamamla)
+            </button>
+
+            <!-- Lab Karar Aşaması (Step 4) -->
+            <button class="btn-simulate" id="btnCompleteLab" onclick="triggerStep(6)" style="display: none; background: #8b5cf6;">
+                🧪 Labda Stokta Beklet (Tamamla)
+            </button>
+            <button class="btn-simulate" id="btnConsume" onclick="triggerStep(4)" style="display: none; background: #10b981;">
+                🔬 Laboratuvarda Tüket (Tamamla)
+            </button>
+            
+            <button class="btn-simulate" id="btnReset" onclick="resetSimulation()" style="background: #64748b; margin-left: auto;">
+                Yeni Simülasyon Başlat
+            </button>
+        </div>
+    </div>
+
+    <!-- Zincir Görselleştirmesi -->
+    <div class="chain-visual">
+        <div class="chain-node">
+            <div class="chain-icon waiting" id="node-produced">🏭</div>
+            <div class="chain-label">Üretim</div>
+            <div class="chain-sublabel">Tedarikçi</div>
+        </div>
+        <div class="chain-arrow" id="arrow-1">→</div>
+        <div class="chain-node">
+            <div class="chain-icon waiting" id="node-shipped">🚚</div>
+            <div class="chain-label">Sevkiyat</div>
+            <div class="chain-sublabel">Lojistik</div>
+        </div>
+        <div class="chain-arrow" id="arrow-2">→</div>
+        <div class="chain-node">
+            <div class="chain-icon waiting" id="node-received">📦</div>
+            <div class="chain-label">Teslim Alma</div>
+            <div class="chain-sublabel">Merkez Depo</div>
+        </div>
+        <div class="chain-arrow" id="arrow-3">→</div>
+        <div class="chain-node">
+            <div class="chain-icon waiting" id="node-transferred">🔄</div>
+            <div class="chain-label">Transfer</div>
+            <div class="chain-sublabel">Lab'a Gönderim</div>
+        </div>
+        <div class="chain-arrow" id="arrow-4">→</div>
+        <div class="chain-node">
+            <div class="chain-icon waiting" id="node-consumed">🔬</div>
+            <div class="chain-label" id="label-consumed">Tüketim</div>
+            <div class="chain-sublabel" id="sublabel-consumed">Laboratuvar</div>
+        </div>
+    </div>
+
+    <!-- İşlem Günlüğü -->
+    <div class="sim-log">
+        <h4>İşlem Günlüğü</h4>
+        <div class="log-entries" id="logEntries">
+            <div class="log-entry info">
+                <span class="log-text">Simülasyonu başlatmak için bir ürün seçin ve "Başlat" butonuna tıklayın.</span>
+            </div>
+        </div>
+        <div class="sim-result" id="simResult"></div>
+    </div>
+</div>
+
+<script>
+    const steps = [
+        { nodeId: 'node-produced',    arrowId: null,      action: 2, from: 'Tedarikçi',           to: 'Üretim Hattı',       label: 'üretildi',                 icon: '🏭' },
+        { nodeId: 'node-shipped',     arrowId: 'arrow-1', action: 3, from: 'Üretim Hattı',        to: 'Kargo/Lojistik',      label: 'sevkiyata çıkarıldı',      icon: '🚚' },
+        { nodeId: 'node-received',    arrowId: 'arrow-2', action: 4, from: 'Kargo/Lojistik',      to: 'Merkez Numune Deposu',label: 'depoda teslim alındı',     icon: '📦' },
+        { nodeId: 'node-transferred', arrowId: 'arrow-3', action: 5, from: 'Merkez Numune Deposu',to: 'Klinik Biyokimya Lab.',label: 'laboratuvara transfer edildi', icon: '🔄' },
+        { nodeId: 'node-consumed',    arrowId: 'arrow-4', action: 6, from: 'Klinik Biyokimya Lab.',to: 'Tüketildi',          label: 'laboratuvarda tüketildi',  icon: '🔬' }
+    ];
+
+    let isRunning = false;
+    let currentStepIndex = 0;
+    let activeLot = "";
+    let activeQty = 0;
+    let activeProductName = "";
+    let activeSupplier = "";
+    let activeDestination = "";
+    let activeLaboratory = "";
+    let activeSupplierId = 0;
+    let activeCarrierId = 0;
+    let activeWarehouseId = 0;
+    let activeLaboratoryId = 0;
+
+    // Sihirbaz (Wizard) Durumu
+    let currentWizardStep = 1;
+
+    function getLotStateClass(state) {
+        const normalized = (state || 'None').toLowerCase();
+        if (['produced', 'shipped', 'received', 'transferred', 'consumed'].includes(normalized)) {
+            return `state-${normalized}`;
+        }
+
+        return 'state-none';
+    }
+
+    function renderLotStatusText(status) {
+        if (!status || !status.exists) {
+            return 'Zincir: kayıt yok';
+        }
+
+        return `Zincir: ${status.lotState} | ${status.onChainQuantity} adet`;
+    }
+
+    function updateLotStatusBadges(status) {
+        if (!status || !status.lotNumber) {
+            return;
+        }
+
+        const stateClass = getLotStateClass(status.lotState);
+        const text = renderLotStatusText(status);
+        document.querySelectorAll('[data-lot-status]').forEach(badge => {
+            if (badge.dataset.lotStatus === status.lotNumber) {
+                badge.className = `lot-status-badge ${stateClass}`;
+                badge.textContent = text;
+            }
+        });
+
+        if (activeLot === status.lotNumber) {
+            const selectedBadge = document.getElementById('selectedLotStatusBadge');
+            if (selectedBadge) {
+                selectedBadge.className = `lot-status-badge ${stateClass}`;
+                selectedBadge.textContent = text;
+                selectedBadge.style.display = 'inline-flex';
+            }
+        }
+    }
+
+    async function fetchLotStatus(lotNumber) {
+        if (!lotNumber) return;
+
+        try {
+            const response = await fetch(`/Product/GetLotStatus?lotNumber=${encodeURIComponent(lotNumber)}`);
+            const status = await response.json();
+            if (status.success) {
+                updateLotStatusBadges(status);
+            } else {
+                updateLotStatusBadges({
+                    lotNumber,
+                    lotState: 'None',
+                    onChainQuantity: 0,
+                    pendingQuantity: 0,
+                    exists: false
+                });
+            }
+        } catch {
+            updateLotStatusBadges({
+                lotNumber,
+                lotState: 'None',
+                onChainQuantity: 0,
+                pendingQuantity: 0,
+                exists: false
+            });
+        }
+    }
+
+    function preloadLotStatuses() {
+        const lotNumbers = Array.from(document.querySelectorAll('[data-lot-status]'))
+            .map(element => element.dataset.lotStatus)
+            .filter(Boolean);
+
+        [...new Set(lotNumbers)].forEach(fetchLotStatus);
+    }
+
+    function goToWizardStep(stepNum) {
+        if (stepNum > currentWizardStep) {
+            // Can only move forward step by step and if validated
+            if (stepNum > currentWizardStep + 1) return;
+            if (!validateWizardStep(currentWizardStep)) return;
+        }
+
+        // Hide all panels
+        document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
+        // Show current panel
+        document.getElementById('wizardPanel-' + stepNum).classList.add('active');
+
+        // Update stepper nodes styling
+        for (let i = 1; i <= 4; i++) {
+            const node = document.getElementById('stepNode-' + i);
+            if (i === stepNum) {
+                node.className = 'wizard-step-node active';
+            } else if (i < stepNum) {
+                node.className = 'wizard-step-node completed';
+            } else {
+                node.className = 'wizard-step-node';
+            }
+        }
+
+        // Update progress bar
+        const progressPercent = ((stepNum - 1) / 3) * 100;
+        document.getElementById('wizardProgress').style.width = progressPercent + '%';
+
+        // Update wizard navigation buttons
+        currentWizardStep = stepNum;
+        
+        const btnPrev = document.getElementById('btnWizardPrev');
+        const btnNext = document.getElementById('btnWizardNext');
+        const btnStart = document.getElementById('btnStartSimulation');
+
+        if (stepNum === 1) {
+            btnPrev.style.display = 'none';
+            btnNext.style.display = 'inline-block';
+            btnStart.style.display = 'none';
+        } else if (stepNum === 4) {
+            btnPrev.style.display = 'inline-block';
+            btnNext.style.display = 'none';
+            btnStart.style.display = 'inline-block';
+        } else {
+            btnPrev.style.display = 'inline-block';
+            btnNext.style.display = 'inline-block';
+            btnStart.style.display = 'none';
+        }
+
+        updateWizardNavButtons();
+    }
+
+    function validateWizardStep(step) {
+        if (step === 1) {
+            return !!document.getElementById('simSupplier').value;
+        } else if (step === 2) {
+            return !!document.getElementById('simProduct').value;
+        } else if (step === 3) {
+            const qty = parseInt(document.getElementById('simQty').value) || 0;
+            return qty >= 1;
+        }
+        return true;
+    }
+
+    function updateWizardNavButtons() {
+        const isValid = validateWizardStep(currentWizardStep);
+        const btnNext = document.getElementById('btnWizardNext');
+        if (btnNext) {
+            btnNext.disabled = !isValid;
+        }
+    }
+
+    function navigateWizard(direction) {
+        const target = currentWizardStep + direction;
+        if (target >= 1 && target <= 4) {
+            goToWizardStep(target);
+        }
+    }
+
+    // Tedarikçi Seçimi
+    function selectSupplierCard(element) {
+        document.querySelectorAll('.supplier-card').forEach(c => c.classList.remove('selected'));
+        element.classList.add('selected');
+        document.getElementById('simSupplier').value = element.dataset.value;
+        document.getElementById('simSupplierId').value = element.dataset.id || '0';
+        updateWizardNavButtons();
+    }
+
+    // Ürün Dropdown Arama / Seçme
+    function showOptions() {
+        document.getElementById('simProductDropdown').style.display = 'block';
+        filterOptions();
+    }
+
+    function hideOptions() {
+        setTimeout(() => {
+            const dropdown = document.getElementById('simProductDropdown');
+            if (dropdown) dropdown.style.display = 'none';
+        }, 250);
+    }
+
+    function filterOptions() {
+        const text = document.getElementById('simProductInput').value.toLowerCase();
+        const items = document.querySelectorAll('#simProductDropdown .dropdown-item');
+        items.forEach(item => {
+            const name = item.dataset.name.toLowerCase();
+            const lot = item.dataset.lot.toLowerCase();
+            if (name.includes(text) || lot.includes(text)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    function selectProduct(element, event) {
+        event.preventDefault();
+        document.getElementById('simProductInput').value = element.dataset.name;
+        document.getElementById('simProduct').value = element.dataset.value;
+        document.getElementById('simProductLot').value = element.dataset.lot;
+        document.getElementById('simProductName').value = element.dataset.name;
+        document.getElementById('simProductDropdown').style.display = 'none';
+
+        // Seçilen ürün kartını göster
+        const card = document.getElementById('selectedProductCard');
+        const title = document.getElementById('selectedProductTitle');
+        const meta = document.getElementById('selectedProductMeta');
+        const selectedBadge = document.getElementById('selectedLotStatusBadge');
+        title.textContent = element.dataset.name;
+        meta.textContent = `Lot Numarası: ${element.dataset.lot || 'Belirtilmemiş'} | Stok: ${element.dataset.lot ? 'Mevcut' : 'Yok'}`;
+        if (selectedBadge) {
+            selectedBadge.style.display = element.dataset.lot ? 'inline-flex' : 'none';
+        }
+        card.classList.add('active');
+        fetchLotStatus(element.dataset.lot);
+
+        updateWizardNavButtons();
+    }
+
+    // Miktar Kontrolleri
+    function adjustQty(amount) {
+        const input = document.getElementById('simQty');
+        let val = parseInt(input.value) || 10;
+        val += amount;
+        if (val < 1) val = 1;
+        if (val > 9999) val = 9999;
+        input.value = val;
+
+        const slider = document.getElementById('simQtySlider');
+        slider.value = val > 100 ? 100 : val;
+
+        updateWizardNavButtons();
+    }
+
+    function syncQtyFromSlider(val) {
+        document.getElementById('simQty').value = val;
+        updateWizardNavButtons();
+    }
+
+    function validateQtyInput(input) {
+        let val = parseInt(input.value);
+        const slider = document.getElementById('simQtySlider');
+        if (isNaN(val) || val < 1) {
+            slider.value = 1;
+        } else {
+            slider.value = val > 100 ? 100 : val;
+        }
+        updateWizardNavButtons();
+    }
+
+    // Loglama
+    function addLog(text, type, txHash) {
+        const now = new Date().toLocaleTimeString('tr-TR');
+        const logDiv = document.getElementById('logEntries');
+        
+        let html = `<div class="log-entry ${type}">
+            <span class="log-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⏳' : 'ℹ️'}</span>
+            <span class="log-text">${text}`;
+        
+        if (txHash) {
+            html += `<br/><span class="log-tx">TX: ${txHash}</span>`;
+        }
+        
+        html += `</span>
+            <span class="log-time">${now}</span>
+        </div>`;
+
+        logDiv.insertAdjacentHTML('beforeend', html);
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // Sıfırlama
+    function resetSimulation() {
+        currentStepIndex = 0;
+        activeLot = "";
+        activeQty = 0;
+        activeProductName = "";
+        activeSupplier = "";
+        activeDestination = "";
+        activeLaboratory = "";
+        activeSupplierId = 0;
+        activeCarrierId = 0;
+        activeWarehouseId = 0;
+        activeLaboratoryId = 0;
+
+        // Reset wizard
+        currentWizardStep = 1;
+        document.getElementById('simSupplier').value = '';
+        document.getElementById('simSupplierId').value = '';
+        document.querySelectorAll('.supplier-card').forEach(c => c.classList.remove('selected'));
+        
+        document.getElementById('simProductInput').value = '';
+        document.getElementById('simProduct').value = '';
+        document.getElementById('simProductLot').value = '';
+        document.getElementById('simProductName').value = '';
+        
+        const card = document.getElementById('selectedProductCard');
+        card.classList.remove('active');
+        document.getElementById('selectedProductTitle').textContent = 'Ürün Seçilmedi';
+        document.getElementById('selectedProductMeta').textContent = 'Lütfen yukarıdan arama yapıp seçin.';
+        document.getElementById('selectedLotStatusBadge').style.display = 'none';
+
+        document.getElementById('simQty').value = '10';
+        document.getElementById('simQtySlider').value = '10';
+
+        // Reset containers
+        document.getElementById('simWizardCard').style.display = 'block';
+        document.getElementById('simActivePanel').classList.remove('active');
+
+        // Reset stepper nodes
+        goToWizardStep(1);
+
+        // Reset visual paths
+        steps.forEach(s => {
+            document.getElementById(s.nodeId).className = 'chain-icon waiting';
+            if (s.arrowId) document.getElementById(s.arrowId).className = 'chain-arrow';
+        });
+
+        // Reset dynamic final node labels
+        document.getElementById('label-consumed').textContent = 'Tüketim';
+        document.getElementById('sublabel-consumed').textContent = 'Laboratuvar';
+        
+        document.getElementById('logEntries').innerHTML = '<div class="log-entry info"><span class="log-icon">ℹ️</span><span class="log-text">Simülasyonu başlatmak için bir ürün seçin ve "Ürünü Üret" butonuna tıklayın.</span></div>';
+        document.getElementById('simResult').className = 'sim-result';
+        document.getElementById('simResult').textContent = '';
+        
+        updateActionButtons();
+    }
+
+    function updateActionButtons() {
+        // Butonları gizle/göster
+        document.getElementById('btnProduce').style.display = currentStepIndex === 0 ? 'inline-block' : 'none';
+        document.getElementById('btnShip').style.display = currentStepIndex === 1 ? 'inline-block' : 'none';
+        document.getElementById('btnReceive').style.display = currentStepIndex === 2 ? 'inline-block' : 'none';
+        
+        // Depo Karar Aşaması (Step 3)
+        document.getElementById('btnTransfer').style.display = currentStepIndex === 3 ? 'inline-block' : 'none';
+        document.getElementById('btnCompleteDepot').style.display = currentStepIndex === 3 ? 'inline-block' : 'none';
+        
+        // Lab Karar Aşaması (Step 4)
+        document.getElementById('btnCompleteLab').style.display = currentStepIndex === 4 ? 'inline-block' : 'none';
+        document.getElementById('btnConsume').style.display = currentStepIndex === 4 ? 'inline-block' : 'none';
+    }
+
+    async function executeStep(stepIndex, overrideFrom, overrideTo, customLabel) {
+        if (isRunning) return false;
+        isRunning = true;
+        
+        const stepObj = steps[stepIndex];
+        const action = stepObj.action;
+        const fromLoc = overrideFrom || stepObj.from;
+        const toLoc = overrideTo || stepObj.to;
+        const label = customLabel || stepObj.label;
+        
+        document.getElementById(stepObj.nodeId).className = 'chain-icon active';
+        addLog(`${activeQty} adet ${label} bekleniyor... (${fromLoc} → ${toLoc})`, 'warning');
+
+        try {
+            const response = await fetch('/Product/SimulateStep', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productId: parseInt(document.getElementById('simProduct').value) || 0,
+                    lotNumber: activeLot,
+                    actionType: action,
+                    quantity: activeQty,
+                    fromLocation: fromLoc,
+                    toLocation: toLoc,
+                    supplierId: activeSupplierId,
+                    carrierId: activeCarrierId,
+                    warehouseLocationId: activeWarehouseId,
+                    laboratoryLocationId: activeLaboratoryId
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById(stepObj.nodeId).className = 'chain-icon done';
+                
+                // Bypassed arrows handling:
+                // If it's step 4 (final step) and we completed at depot (overrideFrom is activeDestination)
+                // then don't set arrow-4 to green.
+                const isBypassed = (stepIndex === 4 && overrideFrom === activeDestination);
+                if (stepObj.arrowId && !isBypassed) {
+                    document.getElementById(stepObj.arrowId).className = 'chain-arrow done';
+                }
+                
+                addLog(`${activeQty} adet ${label}. (${fromLoc} → ${toLoc})`, 'success', data.txHash);
+                updateLotStatusBadges(data);
+                isRunning = false;
+                return true;
+            } else {
+                document.getElementById(stepObj.nodeId).className = 'chain-icon error';
+                addLog(`Hata: ${data.message}`, 'error');
+                isRunning = false;
+                currentStepIndex = -1; // Hata durumu
+                updateActionButtons();
+                return false;
+            }
+        } catch (err) {
+            document.getElementById(stepObj.nodeId).className = 'chain-icon error';
+            addLog(`Bağlantı hatası: ${err.message}`, 'error');
+            isRunning = false;
+            currentStepIndex = -1;
+            updateActionButtons();
+            return false;
+        }
+    }
+
+    function startWizardSimulation() {
+        triggerStep(0);
+    }
+
+    async function triggerStep(actionCode) {
+        if (actionCode === 0) {
+            const productId = document.getElementById('simProduct').value;
+            const lotNumber = document.getElementById('simProductLot').value;
+            const productName = document.getElementById('simProductName').value;
+            const supplier = document.getElementById('simSupplier').value;
+            const destination = document.getElementById('simDestination').value;
+            const laboratory = document.getElementById('simLaboratory').value;
+            
+            if (!productId || !lotNumber) {
+                alert('Lütfen sihirbaz adımlarını takip ederek geçerli bir ürün seçin.');
+                return;
+            }
+            const quantity = parseInt(document.getElementById('simQty').value) || 10;
+            
+            activeLot = lotNumber;
+            activeQty = quantity;
+            activeProductName = productName;
+            activeSupplier = supplier;
+            activeDestination = destination;
+            activeLaboratory = laboratory;
+            activeSupplierId = parseInt(document.getElementById('simSupplierId').value) || 0;
+            activeCarrierId = parseInt(document.getElementById('simCarrierId').value) || 0;
+            activeWarehouseId = parseInt(document.getElementById('simWarehouseId').value) || 0;
+            activeLaboratoryId = parseInt(document.getElementById('simLaboratoryId').value) || 0;
+            
+            // Populate active sim panel receipt
+            document.getElementById('summarySupplier').textContent = activeSupplier;
+            document.getElementById('summaryProductName').textContent = activeProductName;
+            document.getElementById('summaryLotNumber').textContent = activeLot;
+            document.getElementById('summaryQty').textContent = activeQty + " adet";
+            document.getElementById('summaryDestination').textContent = activeDestination;
+            
+            // Hide wizard, show active panel
+            document.getElementById('simWizardCard').style.display = 'none';
+            document.getElementById('simActivePanel').classList.add('active');
+
+            document.getElementById('logEntries').innerHTML = '';
+            addLog(`"${activeProductName}" için manuel üretim başlatıldı... (Lot: ${activeLot}, Miktar: ${activeQty}, Üretici: ${activeSupplier})`, 'info');
+            
+            const ok = await executeStep(0, `Tedarikçi (${activeSupplier})`, null);
+            if (ok) {
+                currentStepIndex = 1;
+                updateActionButtons();
+            }
+        } 
+        else if (actionCode === 1) {
+            const ok = await executeStep(1);
+            if (ok) {
+                currentStepIndex = 2;
+                updateActionButtons();
+            }
+        }
+        else if (actionCode === 2) {
+            const ok = await executeStep(2, null, activeDestination);
+            if (ok) {
+                currentStepIndex = 3;
+                updateActionButtons();
+            }
+        }
+        else if (actionCode === 3) {
+            const ok = await executeStep(3, activeDestination, activeLaboratory);
+            if (ok) {
+                currentStepIndex = 4;
+                updateActionButtons();
+            }
+        }
+        else if (actionCode === 4) {
+            // Laboratuvarda Tüket (Süreci Tamamla)
+            const ok = await executeStep(4, activeLaboratory || 'Klinik Biyokimya Lab.', 'Tüketildi', 'laboratuvarda tüketildi');
+            if (ok) {
+                currentStepIndex = 5;
+                updateActionButtons();
+                const resultDiv = document.getElementById('simResult');
+                resultDiv.className = 'sim-result success';
+                resultDiv.textContent = `İşlem Tamamlandı! "${activeProductName}" laboratuvarda başarıyla tüketildi ve blockchain'e mühürlendi.`;
+            }
+        }
+        else if (actionCode === 5) {
+            // Depoda Stokta Beklet (Süreci Tamamla)
+            currentStepIndex = 5;
+            updateActionButtons();
+
+            // Adjust visual node labels to match Depot location
+            document.getElementById('label-consumed').textContent = 'Stokta Kabul';
+            document.getElementById('sublabel-consumed').textContent = 'Merkez Depo';
+            document.getElementById('node-consumed').className = 'chain-icon done';
+            
+            // Mute laboratory steps since they are bypassed
+            document.getElementById('node-transferred').className = 'chain-icon waiting';
+            if (document.getElementById('arrow-3')) document.getElementById('arrow-3').className = 'chain-arrow';
+            if (document.getElementById('arrow-4')) document.getElementById('arrow-4').className = 'chain-arrow';
+            
+            const resultDiv = document.getElementById('simResult');
+            resultDiv.className = 'sim-result success';
+            resultDiv.textContent = `İşlem Tamamlandı! "${activeProductName}" Merkez Depo'da stoğa kabul edilip beklemeye alındı.`;
+            
+            addLog(`Simülasyon Tamamlandı: "${activeProductName}" depoda stokta bekletiliyor. (Ek blockchain kaydı atılmadı)`, 'info');
+        }
+        else if (actionCode === 6) {
+            // Labda Stokta Beklet (Süreci Tamamla)
+            currentStepIndex = 5;
+            updateActionButtons();
+
+            // Adjust visual node labels to match Lab location
+            document.getElementById('label-consumed').textContent = 'Labda Kabul';
+            document.getElementById('sublabel-consumed').textContent = 'Biyokimya Lab';
+            document.getElementById('node-consumed').className = 'chain-icon done';
+            
+            const resultDiv = document.getElementById('simResult');
+            resultDiv.className = 'sim-result success';
+            resultDiv.textContent = `İşlem Tamamlandı! "${activeProductName}" Laboratuvar'da stoğa kabul edilip beklemeye alındı.`;
+            
+            addLog(`Simülasyon Tamamlandı: "${activeProductName}" laboratuvarda stokta bekletiliyor. (Ek blockchain kaydı atılmadı)`, 'info');
+        }
+    }
+
+    // Sayfa yüklendiğinde ilk sihirbaz adımını başlat
+    document.addEventListener("DOMContentLoaded", () => {
+        goToWizardStep(1);
+        preloadLotStatuses();
+    });
+</script>

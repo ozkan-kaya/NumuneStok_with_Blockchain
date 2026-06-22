@@ -80,15 +80,14 @@
         z-index: 1;
     }
 
-    .bc-timeline-item.action-added::before {
-        background: #27ae60;
-        box-shadow: 0 0 0 3px #27ae60, 0 0 12px rgba(39, 174, 96, 0.4);
-    }
-
-    .bc-timeline-item.action-deducted::before {
-        background: #e94560;
-        box-shadow: 0 0 0 3px #e94560, 0 0 12px rgba(233, 69, 96, 0.4);
-    }
+    .bc-timeline-item.action-added::before { background: #27ae60; box-shadow: 0 0 0 3px #27ae60, 0 0 12px rgba(39, 174, 96, 0.4); }
+    .bc-timeline-item.action-deducted::before { background: #e94560; box-shadow: 0 0 0 3px #e94560, 0 0 12px rgba(233, 69, 96, 0.4); }
+    .bc-timeline-item.action-produced::before { background: #8b5cf6; box-shadow: 0 0 0 3px #8b5cf6, 0 0 12px rgba(139, 92, 246, 0.4); }
+    .bc-timeline-item.action-shipped::before { background: #f97316; box-shadow: 0 0 0 3px #f97316, 0 0 12px rgba(249, 115, 22, 0.4); }
+    .bc-timeline-item.action-received::before { background: #3b82f6; box-shadow: 0 0 0 3px #3b82f6, 0 0 12px rgba(59, 130, 246, 0.4); }
+    .bc-timeline-item.action-transferred::before { background: #eab308; box-shadow: 0 0 0 3px #eab308, 0 0 12px rgba(234, 179, 8, 0.4); }
+    .bc-timeline-item.action-consumed::before { background: #ef4444; box-shadow: 0 0 0 3px #ef4444, 0 0 12px rgba(239, 68, 68, 0.4); }
+    .bc-timeline-item.action-genesis::before { background: #d97706; box-shadow: 0 0 0 3px #d97706, 0 0 12px rgba(217, 119, 6, 0.4); }
 
     .bc-card {
         background: #fff;
@@ -104,13 +103,14 @@
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
     }
 
-    .bc-card.card-added {
-        border-left-color: #27ae60;
-    }
-
-    .bc-card.card-deducted {
-        border-left-color: #e94560;
-    }
+    .bc-card.card-added { border-left-color: #27ae60; }
+    .bc-card.card-deducted { border-left-color: #e94560; }
+    .bc-card.card-produced { border-left-color: #8b5cf6; }
+    .bc-card.card-shipped { border-left-color: #f97316; }
+    .bc-card.card-received { border-left-color: #3b82f6; }
+    .bc-card.card-transferred { border-left-color: #eab308; }
+    .bc-card.card-consumed { border-left-color: #ef4444; }
+    .bc-card.card-genesis { border-left-color: #d97706; }
 
     .bc-card .action-badge {
         display: inline-block;
@@ -122,15 +122,14 @@
         letter-spacing: 0.5px;
     }
 
-    .bc-card .action-badge.badge-added {
-        background: #d4edda;
-        color: #155724;
-    }
-
-    .bc-card .action-badge.badge-deducted {
-        background: #f8d7da;
-        color: #721c24;
-    }
+    .bc-card .action-badge.badge-added { background: #d4edda; color: #155724; }
+    .bc-card .action-badge.badge-deducted { background: #f8d7da; color: #721c24; }
+    .bc-card .action-badge.badge-produced { background: #ede9fe; color: #5b21b6; }
+    .bc-card .action-badge.badge-shipped { background: #ffedd5; color: #9a3412; }
+    .bc-card .action-badge.badge-received { background: #dbeafe; color: #1e40af; }
+    .bc-card .action-badge.badge-transferred { background: #fef9c3; color: #854d0e; }
+    .bc-card .action-badge.badge-consumed { background: #fee2e2; color: #991b1b; }
+    .bc-card .action-badge.badge-genesis { background: #fef3c7; color: #92400e; }
 
     .bc-card .card-row {
         display: flex;
@@ -203,6 +202,51 @@
         font-size: 0.8rem;
         font-weight: 600;
     }
+
+    .bc-status-panel {
+        background: #fff;
+        border-radius: 10px;
+        padding: 18px 22px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .bc-status-panel h3 {
+        margin: 0 0 12px 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .bc-status-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .bc-status-table th,
+    .bc-status-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #eef2f7;
+        text-align: left;
+    }
+
+    .bc-status-table th {
+        color: #64748b;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .bc-status-pill {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 16px;
+        background: #eef2ff;
+        color: #3730a3;
+        font-weight: 700;
+        font-size: 0.78rem;
+    }
 </style>
 
 @{
@@ -233,15 +277,83 @@ else
     </div>
 
     var dbStock = ViewBag.DatabaseTotalStock != null ? (int)ViewBag.DatabaseTotalStock : 0;
+    var comparableDbStock = ViewBag.BlockchainComparableDatabaseStock != null ? (int)ViewBag.BlockchainComparableDatabaseStock : dbStock;
+    var uninitializedLotStock = ViewBag.UninitializedLotStock != null ? (int)ViewBag.UninitializedLotStock : 0;
+    var uninitializedLotCount = ViewBag.UninitializedLotCount != null ? (int)ViewBag.UninitializedLotCount : 0;
+    var uninitializedLotNumbers = ViewBag.UninitializedLotNumbers as List<string> ?? new List<string>();
+    var blockchainLotStatuses = ViewBag.BlockchainLotStatuses as List<NumuneStok.Services.BlockchainLotStatus> ?? new List<NumuneStok.Services.BlockchainLotStatus>();
+    var blockchainCoverageError = ViewBag.BlockchainCoverageError as string;
     var bcStock = 0;
 
     foreach(var r in Model)
     {
-        if(r.Action == "Added") bcStock += r.Quantity;
-        else if (r.Action == "Deducted") bcStock -= r.Quantity;
+        if (r.Action == "Added" || r.Action == "Received" || r.Action == "Genesis") 
+        {
+            bcStock += r.Quantity;
+        }
+        else if (r.Action == "Deducted" || (r.Action == "Consumed" && r.ToLocation == "Tüketildi")) 
+        {
+            bcStock -= r.Quantity;
+        }
     }
 
-    if (dbStock != bcStock)
+    if (!string.IsNullOrEmpty(blockchainCoverageError))
+    {
+        <div style="background-color: #f8d7da; color: #721c24; padding: 15px 20px; border-left: 6px solid #f5c6cb; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <h3 style="margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 1.3rem;">
+                <strong>Blockchain Kapsamı Tamamlanamadı</strong>
+                <span style="font-size: 1.5rem;">⚠️</span>
+            </h3>
+            <p style="font-size: 1.05rem; margin-bottom: 0;">
+                Blockchain geçmişi okunurken hata oluştu:
+                <strong>@blockchainCoverageError</strong>
+            </p>
+        </div>
+    }
+    else if (dbStock > 0 && Model.Count == 0)
+    {
+        <div style="background-color: #f8d7da; color: #721c24; padding: 15px 20px; border-left: 6px solid #f5c6cb; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <h3 style="margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 1.3rem;">
+                <strong>Blockchain Başlangıç Kaydı Oluşturulamadı</strong>
+                <span style="font-size: 1.5rem;">⚠️</span>
+            </h3>
+            <p style="font-size: 1.05rem; margin-bottom: 12px;">
+                Bu ürün için veritabanında <strong>@dbStock Adet</strong> stok var; ancak blockchain üzerinde henüz kayıt bulunamadı.
+                Mevcut stoklar yalnızca <strong>Blockchain/scripts/start_and_sync.sh</strong> ilk kurulum script'i çalıştırıldığında blockchain'e alınır. Kayıt hâlâ yoksa blockchain node, contract address veya deploy edilmiş sözleşme sürümü kontrol edilmelidir.
+            </p>
+        </div>
+    }
+    else if (bcStock < comparableDbStock || uninitializedLotStock > 0)
+    {
+        var missingComparableStock = Math.Max(0, comparableDbStock - bcStock);
+        var totalPendingBlockchainStock = missingComparableStock + uninitializedLotStock;
+
+        <div style="background-color: #f8d7da; color: #721c24; padding: 15px 20px; border-left: 6px solid #f5c6cb; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <h3 style="margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 1.3rem;">
+                <strong>Blockchain Başlangıç Envanteri Eksik</strong>
+                <span style="font-size: 1.5rem;">⚠️</span>
+            </h3>
+            <p style="font-size: 1.05rem; margin-bottom: 8px;">
+                Ürünün toplam veritabanı stoğu <strong>@dbStock Adet</strong>, blockchain toplamı şu an <strong>@bcStock Adet</strong>.
+                Aradaki <strong>@totalPendingBlockchainStock Adet</strong> fark, ilk kurulum script'iyle blockchain'e alınması gereken mevcut stok kayıtlarının eksik kaldığını gösterir.
+            </p>
+            @if (missingComparableStock > 0)
+            {
+                <p style="font-size: 0.92rem; margin-bottom: 6px;">
+                    Blockchain hareketi görmüş lotlarda eksik başlangıç envanteri miktarı: <strong>@missingComparableStock Adet</strong>.
+                    Bu fark normal kabul edilmez; blockchain sözleşmesinin deploy edildiğinden emin olup uygulamayı yeniden başlatmak gerekir.
+                </p>
+            }
+            @if (uninitializedLotStock > 0)
+            {
+                <p style="font-size: 0.92rem; margin-bottom: 0;">
+                    Henüz blockchain hareketi görmemiş lot stoğu: <strong>@uninitializedLotStock Adet</strong>
+                    (<strong>@uninitializedLotCount lot</strong>: @string.Join(", ", uninitializedLotNumbers.Take(5))@(uninitializedLotNumbers.Count > 5 ? "..." : "")).
+                </p>
+            }
+        </div>
+    }
+    else if (dbStock != bcStock)
     {
         <div style="background-color: #f8d7da; color: #721c24; padding: 15px 20px; border-left: 6px solid #f5c6cb; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
             <h3 style="margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 1.3rem;">
@@ -258,7 +370,39 @@ else
                 <strong>Veriler Doğrulandı</strong>
                 <span style="font-size: 1.5rem;">✅</span>
             </h3>
-            <p style="font-size: 1.05rem; margin-bottom: 0;">Veritabanındaki stok miktarı (<strong>@dbStock Adet</strong>) ile blokzincirindeki kriptografik kayıtların toplamı (<strong>@bcStock Adet</strong>) birbiriyle eşleşmektedir. Sistemde herhangi bir veri manipülasyonu tespit edilmemiştir.</p>
+            <p style="font-size: 1.05rem; margin-bottom: 0;">
+                Veritabanındaki stok miktarı (<strong>@dbStock Adet</strong>) ile blokzincirindeki kriptografik kayıtların toplamı (<strong>@bcStock Adet</strong>) birbiriyle eşleşmektedir. Sistemde herhangi bir veri manipülasyonu tespit edilmemiştir.
+            </p>
+        </div>
+    }
+
+    if (blockchainLotStatuses.Count > 0)
+    {
+        <div class="bc-status-panel">
+            <h3>Zincir Üzerindeki Güncel Lot Durumları</h3>
+            <table class="bc-status-table">
+                <thead>
+                    <tr>
+                        <th>Lot</th>
+                        <th>Kontrat Durumu</th>
+                        <th>On-chain Stok</th>
+                        <th>Bekleyen Miktar</th>
+                        <th>Kayıt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var status in blockchainLotStatuses.OrderBy(s => s.LotNumber))
+                    {
+                        <tr>
+                            <td style="font-family:'Courier New', monospace; font-weight:700; color:#e94560;">@status.LotNumber</td>
+                            <td><span class="bc-status-pill">@status.State</span></td>
+                            <td>@status.OnChainQuantity</td>
+                            <td>@status.PendingQuantity</td>
+                            <td>@(status.Exists ? "Blockchain'de var" : "Blockchain'de yok")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     }
 
@@ -268,12 +412,59 @@ else
     <div class="bc-timeline">
         @foreach (var record in Model)
         {
-            var isAdded = record.Action == "Added";
-            var itemClass = isAdded ? "action-added" : "action-deducted";
-            var cardClass = isAdded ? "card-added" : "card-deducted";
-            var badgeClass = isAdded ? "badge-added" : "badge-deducted";
-            var actionText = isAdded ? $"✅ {record.Quantity} Adet Stok Eklendi" : $"📤 {record.Quantity} Adet Stok Düşüldü";
-            var actionIcon = isAdded ? "+" : "−";
+            string itemClass = "action-added", cardClass = "card-added", badgeClass = "badge-added", actionText = "";
+
+            switch (record.Action)
+            {
+                case "Added":
+                    if ((record.FromLocation ?? "").Contains("Başlangıç"))
+                    {
+                        itemClass = "action-genesis";
+                        cardClass = "card-genesis";
+                        badgeClass = "badge-genesis";
+                        actionText = $"🔒 {record.Quantity} Adet Başlangıç Envanteri Tamamlandı";
+                    }
+                    else
+                    {
+                        actionText = $"✅ {record.Quantity} Adet Stok Eklendi";
+                    }
+                    break;
+                case "Deducted": itemClass = "action-deducted"; cardClass = "card-deducted"; badgeClass = "badge-deducted"; actionText = $"📤 {record.Quantity} Adet Stok Düşüldü"; break;
+                case "Produced": itemClass = "action-produced"; cardClass = "card-produced"; badgeClass = "badge-produced"; actionText = $"🏭 {record.Quantity} Adet Üretildi"; break;
+                case "Shipped": itemClass = "action-shipped"; cardClass = "card-shipped"; badgeClass = "badge-shipped"; actionText = $"🚚 {record.Quantity} Adet Sevkiyata Çıkarıldı"; break;
+                case "Received": itemClass = "action-received"; cardClass = "card-received"; badgeClass = "badge-received"; actionText = $"📦 {record.Quantity} Adet Teslim Alındı"; break;
+                case "Transferred": itemClass = "action-transferred"; cardClass = "card-transferred"; badgeClass = "badge-transferred"; actionText = $"🔄 {record.Quantity} Adet Transfer Edildi"; break;
+                case "Consumed":
+                    if (record.FromLocation == "Stoğa Kabul Edildi")
+                    {
+                        itemClass = "action-added";
+                        cardClass = "card-added";
+                        badgeClass = "badge-added";
+                        actionText = $"📦 {record.Quantity} Adet Stoğa Kabul Edildi";
+                    }
+                    else if (record.FromLocation == "Lab Stoğuna Kabul")
+                    {
+                        itemClass = "action-received";
+                        cardClass = "card-received";
+                        badgeClass = "badge-received";
+                        actionText = $"🧪 {record.Quantity} Adet Lab Stoğuna Kabul Edildi";
+                    }
+                    else
+                    {
+                        itemClass = "action-consumed";
+                        cardClass = "card-consumed";
+                        badgeClass = "badge-consumed";
+                        actionText = $"🔬 {record.Quantity} Adet Tüketildi";
+                    }
+                    break;
+                case "Genesis":
+                    itemClass = "action-genesis";
+                    cardClass = "card-genesis";
+                    badgeClass = "badge-genesis";
+                    actionText = $"🔒 {record.Quantity} Adet Sistem Başlangıç Stoku";
+                    break;
+                default: actionText = $"{record.Quantity} Adet İşlem ({record.Action})"; break;
+            }
 
             <div class="bc-timeline-item @itemClass">
                 <div class="bc-card @cardClass">
@@ -290,6 +481,17 @@ else
                             <div class="label">Cüzdan Adresi (İşlemi Yapan)</div>
                             <div class="wallet-address">@record.UserAddress</div>
                         </div>
+                        @if (!string.IsNullOrEmpty(record.FromLocation) || !string.IsNullOrEmpty(record.ToLocation))
+                        {
+                            <div style="flex-basis: 100%; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0f0;">
+                                <div class="label">Konum Hareketi</div>
+                                <div class="value" style="margin-top: 4px;">
+                                    <span style="color:#555;">@(string.IsNullOrEmpty(record.FromLocation) ? "-" : record.FromLocation)</span> 
+                                    <span style="color:#ccc; margin:0 8px; font-size:1.2rem; vertical-align:-1px;">→</span> 
+                                    <span style="color:#111; font-weight:700;">@(string.IsNullOrEmpty(record.ToLocation) ? "-" : record.ToLocation)</span>
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

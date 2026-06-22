@@ -1,10 +1,16 @@
 #!/bin/bash
+set -euo pipefail
 
-# Çıkış yapıldığında arka plandaki node'u da kapat
-trap "echo 'Hardhat Node kapatılıyor...'; kill 0" SIGINT SIGTERM EXIT
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BLOCKCHAIN_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$BLOCKCHAIN_DIR/.." && pwd)"
+NODE_PID=""
+
+trap 'echo "Hardhat Node kapatılıyor..."; if [ -n "$NODE_PID" ]; then kill "$NODE_PID" 2>/dev/null || true; fi' SIGINT SIGTERM EXIT
+
+cd "$BLOCKCHAIN_DIR"
 
 echo "Hardhat Node başlatılıyor..."
-# Hardhat node'u arka planda başlatıyoruz
 npx hardhat node &
 NODE_PID=$!
 
@@ -12,15 +18,21 @@ echo "Node'un ayağa kalkması bekleniyor (3 saniye)..."
 sleep 3
 
 echo "Akıllı Sözleşme (Smart Contract) deploy ediliyor..."
-npx hardhat run scripts/deploy.js --network localhost
+DEPLOY_OUTPUT="$(npx hardhat run scripts/deploy.js --network localhost)"
+echo "$DEPLOY_OUTPUT"
 
-echo "Veritabanı ile Blockchain senkronize ediliyor..."
-curl -s http://localhost:5233/Product/SyncBlockchain
-echo ""
+CONTRACT_ADDRESS="$(printf "%s\n" "$DEPLOY_OUTPUT" | awk '/SupplyChainLedger deployed to:/ {print $NF}' | tail -n 1)"
+if [ -z "$CONTRACT_ADDRESS" ]; then
+    echo "❌ Deploy edilen contract address okunamadı."
+    exit 1
+fi
 
-echo "✅ Sistem başarıyla senkronize edildi."
+echo "Başlangıç stokları blockchain'e senkronize ediliyor..."
+cd "$ROOT_DIR"
+BLOCKCHAIN_SYNC_SOURCE="start_and_sync" Blockchain__ContractAddress="$CONTRACT_ADDRESS" dotnet run --project NumuneStok/NumuneStok.csproj -- --sync-blockchain
+
+echo "✅ Blockchain node, akıllı sözleşme ve başlangıç stok sync hazır."
 echo "🟢 Hardhat Node çalışmaya devam ediyor..."
 echo "❌ Node'u kapatmak için CTRL+C tuşlarına basın."
 
-# Script'in kapanmaması için node sürecini bekliyoruz
-wait $NODE_PID
+wait "$NODE_PID"

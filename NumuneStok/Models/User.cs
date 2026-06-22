@@ -10,6 +10,7 @@ namespace NumuneStok.Models
         public string Password { get; set; }
         public int RoleId { get; set; }
         public Role Role { get; set; }
+        public string? BlockchainRole { get; set; }
+        public string? WalletAddress { get; set; }
     }
 }
-

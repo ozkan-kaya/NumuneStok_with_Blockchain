@@ -1,0 +1,669 @@
+@model List<NumuneStok.Controllers.IntegrityCheckRow>
+@using NumuneStok.Controllers
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Blockchain Bütünlük Doğrulama";
+    bool isUp = ViewBag.BlockchainAvailable == true;
+    int total = ViewBag.TotalLots ?? 0;
+    int matchCount = ViewBag.MatchCount ?? 0;
+    int mismatchCount = ViewBag.MismatchCount ?? 0;
+    int errorCount = ViewBag.ErrorCount ?? 0;
+}
+
+<style>
+    /* ─── Sayfa Genel ─── */
+    .bce-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px 16px;
+    }
+
+    /* ─── Başlık ─── */
+    .bce-header {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border-radius: 14px;
+        padding: 28px 32px;
+        margin-bottom: 28px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .bce-header-icon {
+        font-size: 2.4rem;
+        line-height: 1;
+    }
+
+    .bce-header h1 {
+        margin: 0 0 4px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+
+    .bce-header p {
+        margin: 0;
+        font-size: 0.88rem;
+        color: #94a3b8;
+    }
+
+    .bce-header .refresh-btn {
+        margin-left: auto;
+        background: rgba(255,255,255,0.10);
+        border: 1px solid rgba(255,255,255,0.18);
+        color: #fff;
+        padding: 9px 22px;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+    }
+
+    .bce-header .refresh-btn:hover {
+        background: rgba(255,255,255,0.20);
+        color: #fff;
+        text-decoration: none;
+    }
+
+    /* ─── Ağ Hatası ─── */
+    .bce-network-error {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        padding: 20px 24px;
+        color: #991b1b;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+
+    .bce-network-error .icon { font-size: 1.5rem; }
+
+    /* ─── Özet Kartları ─── */
+    .bce-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .bce-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px 22px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        border-left: 4px solid transparent;
+    }
+
+    .bce-card.green  { border-left-color: #22c55e; }
+    .bce-card.red    { border-left-color: #ef4444; }
+    .bce-card.yellow { border-left-color: #f59e0b; }
+    .bce-card.slate  { border-left-color: #64748b; }
+
+    .bce-card .card-value {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    .bce-card.green  .card-value { color: #16a34a; }
+    .bce-card.red    .card-value { color: #dc2626; }
+    .bce-card.yellow .card-value { color: #d97706; }
+    .bce-card.slate  .card-value { color: #475569; }
+
+    .bce-card .card-label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* ─── Filtre Çubuğu ─── */
+    .bce-filters {
+        background: #fff;
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .bce-filters label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #475569;
+        margin: 0;
+    }
+
+    .filter-btn {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 6px 14px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        color: #475569;
+    }
+
+    .filter-btn.active,
+    .filter-btn:hover { background: #0f172a; color: #fff; border-color: #0f172a; }
+
+    .bce-filters input[type="text"] {
+        margin-left: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 7px 14px;
+        font-size: 0.85rem;
+        outline: none;
+        width: 220px;
+    }
+
+    .bce-filters input[type="text"]:focus { border-color: #6366f1; }
+
+    /* ─── Tablo ─── */
+    .bce-table-wrap {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        overflow: hidden;
+    }
+
+    .bce-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.88rem;
+    }
+
+    .bce-table thead th {
+        background: #0f172a;
+        color: #94a3b8;
+        padding: 13px 16px;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        white-space: nowrap;
+    }
+
+    .bce-table tbody tr {
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.12s;
+    }
+
+    .bce-table tbody tr:hover { background: #f8fafc; }
+    .bce-table tbody tr:last-child { border-bottom: none; }
+
+    .bce-table td {
+        padding: 13px 16px;
+        vertical-align: middle;
+        color: #1e293b;
+    }
+
+    .lot-code {
+        font-family: 'Courier New', monospace;
+        font-size: 0.83rem;
+        font-weight: 700;
+        color: #4f46e5;
+        background: #eef2ff;
+        padding: 3px 8px;
+        border-radius: 4px;
+    }
+
+    .num {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+    }
+
+    .num-mismatch { color: #dc2626; }
+    .num-ok       { color: #16a34a; }
+
+    /* ─── Durum Rozetleri ─── */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .badge-ok      { background: #dcfce7; color: #166534; }
+    .badge-warn    { background: #fef9c3; color: #854d0e; }
+    .badge-danger  { background: #fee2e2; color: #991b1b; }
+    .badge-info    { background: #e0f2fe; color: #075985; }
+    .badge-error   { background: #f3f4f6; color: #374151; }
+
+    /* ─── Detay Butonu ─── */
+    .btn-detail {
+        background: none;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 5px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #475569;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-detail:hover { background: #0f172a; color: #fff; border-color: #0f172a; }
+
+    /* ─── Detay Panel (Modal) ─── */
+    .detail-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .detail-overlay.open { display: flex; }
+
+    .detail-panel {
+        background: #fff;
+        border-radius: 14px;
+        width: 92%;
+        max-width: 680px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        animation: slideUp 0.2s ease;
+    }
+
+    @@keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .detail-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .detail-header h3 { margin: 0; font-size: 1.05rem; color: #0f172a; }
+
+    .detail-close {
+        background: none;
+        border: none;
+        font-size: 1.4rem;
+        color: #94a3b8;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .detail-body {
+        overflow-y: auto;
+        padding: 20px 24px;
+        flex: 1;
+    }
+
+    .detail-loading { text-align: center; color: #94a3b8; padding: 32px; }
+
+    /* Timeline */
+    .detail-timeline { position: relative; padding-left: 28px; }
+
+    .detail-timeline::before {
+        content: '';
+        position: absolute;
+        left: 7px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e2e8f0;
+    }
+
+    .tl-item {
+        position: relative;
+        margin-bottom: 16px;
+    }
+
+    .tl-dot {
+        position: absolute;
+        left: -24px;
+        top: 4px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #6366f1;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px #6366f1;
+    }
+
+    .tl-action {
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #0f172a;
+    }
+
+    .tl-meta {
+        font-size: 0.78rem;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    .tl-hash {
+        font-family: monospace;
+        font-size: 0.73rem;
+        color: #94a3b8;
+        word-break: break-all;
+    }
+
+    /* Boş durum */
+    .bce-empty {
+        text-align: center;
+        padding: 60px 24px;
+        color: #94a3b8;
+    }
+
+    .bce-empty .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+    .bce-empty p { margin: 0; font-size: 0.95rem; }
+</style>
+
+<div class="bce-container">
+
+    <!-- Başlık -->
+    <div class="bce-header">
+        <div class="bce-header-icon">🔍</div>
+        <div>
+            <h1>Blockchain Bütünlük Doğrulama</h1>
+            <p>MySQL veritabanı stok kayıtları ile blockchain üzerindeki lot durumlarının karşılaştırılması</p>
+        </div>
+        <a href="@Url.Action("Index", "BlockchainExplorer")" class="refresh-btn">
+            ↻ Yenile
+        </a>
+    </div>
+
+    <!-- Blockchain kapalı uyarısı -->
+    @if (!isUp)
+    {
+        <div class="bce-network-error">
+            <span class="icon">⚠️</span>
+            <div>
+                <strong>Blockchain ağına erişilemiyor.</strong>
+                <p style="margin:4px 0 0; font-size:0.87rem;">
+                    @if (!string.IsNullOrEmpty(ViewBag.NetworkError as string))
+                    {
+                        @ViewBag.NetworkError
+                    }
+                    else
+                    {
+                        <span>Hardhat node'un çalıştığından ve <code>http://127.0.0.1:8545</code> adresine erişilebildiğinden emin olun.</span>
+                    }
+                </p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Özet Kartlar -->
+        <div class="bce-summary">
+            <div class="bce-card slate">
+                <div class="card-value">@total</div>
+                <div class="card-label">Toplam Lot</div>
+            </div>
+            <div class="bce-card green">
+                <div class="card-value">@matchCount</div>
+                <div class="card-label">Eşleşen</div>
+            </div>
+            <div class="bce-card red">
+                <div class="card-value">@mismatchCount</div>
+                <div class="card-label">Uyuşmazlık</div>
+            </div>
+            @if (errorCount > 0)
+            {
+                <div class="bce-card yellow">
+                    <div class="card-value">@errorCount</div>
+                    <div class="card-label">Hata</div>
+                </div>
+            }
+        </div>
+
+        <!-- Filtreler -->
+        <div class="bce-filters">
+            <label>Filtrele:</label>
+            <button class="filter-btn active" onclick="filterRows('all', this)" id="f-all">Tümü (@total)</button>
+            <button class="filter-btn" onclick="filterRows('ok', this)" id="f-ok">✔ Eşleşen (@matchCount)</button>
+            <button class="filter-btn" onclick="filterRows('mismatch', this)" id="f-mismatch">✖ Uyuşmazlık (@mismatchCount)</button>
+            <input type="text" id="lot-search" placeholder="Lot numarası ara..." oninput="searchRows(this.value)" />
+        </div>
+
+        <!-- Tablo -->
+        <div class="bce-table-wrap">
+            @if (!Model.Any())
+            {
+                <div class="bce-empty">
+                    <div class="empty-icon">📦</div>
+                    <p>Veritabanında lot kaydı bulunamadı.</p>
+                </div>
+            }
+            else
+            {
+                <table class="bce-table" id="integrity-table">
+                    <thead>
+                        <tr>
+                            <th>Lot Numarası</th>
+                            <th>Ürün</th>
+                            <th>DB Stok</th>
+                            <th>Blockchain Stok</th>
+                            <th>Fark</th>
+                            <th>Blockchain Durumu</th>
+                            <th>Doğrulama</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model)
+                        {
+                            string rowClass = row.Status == IntegrityStatus.Eslesme ? "ok" : "mismatch";
+                            string diffClass = row.StockDifference == 0 ? "num-ok" : "num-mismatch";
+
+                            <tr data-filter="@rowClass" data-lot="@row.LotNumber.ToLower()">
+                                <td><span class="lot-code">@row.LotNumber</span></td>
+                                <td>@row.ProductName</td>
+                                <td class="num">@row.DatabaseStock</td>
+                                <td class="num">
+                                    @if (row.BlockchainExists)
+                                    {
+                                        @row.BlockchainStock
+                                    }
+                                    else
+                                    {
+                                        <span style="color:#94a3b8;">—</span>
+                                    }
+                                </td>
+                                <td class="num @diffClass">
+                                    @if (row.BlockchainExists)
+                                    {
+                                        string sign = row.StockDifference > 0 ? "+" : "";
+                                        @($"{sign}{row.StockDifference}")
+                                    }
+                                    else
+                                    {
+                                        <span>—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(row.BlockchainState))
+                                    {
+                                        <span class="badge badge-info">@row.BlockchainState</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:#94a3b8; font-size:0.8rem;">Kayıt yok</span>
+                                    }
+                                </td>
+                                <td>
+                                    @switch (row.Status)
+                                    {
+                                        case IntegrityStatus.Eslesme:
+                                            <span class="badge badge-ok">✔ Eşleşiyor</span>
+                                            break;
+                                        case IntegrityStatus.GenesisEksik:
+                                            <span class="badge badge-danger">⚠ Genesis Eksik</span>
+                                            break;
+                                        case IntegrityStatus.VeritabaniFazla:
+                                            <span class="badge badge-danger">⚠ DB Fazla</span>
+                                            break;
+                                        case IntegrityStatus.BlockchainFazla:
+                                            <span class="badge badge-warn">⚠ Blockchain Fazla</span>
+                                            break;
+                                        case IntegrityStatus.HataVar:
+                                            <span class="badge badge-error" title="@row.ErrorMessage">❌ Hata</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn-detail"
+                                            onclick="showDetail('@row.LotNumber', '@row.ProductName')">
+                                        Geçmiş
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <!-- Uyuşmazlık Açıklaması -->
+        <div style="margin-top:20px; background:#fff; border-radius:10px; padding:18px 22px; box-shadow:0 2px 8px rgba(0,0,0,0.05); font-size:0.84rem; color:#475569;">
+            <strong style="color:#0f172a; display:block; margin-bottom:10px;">Durum Açıklamaları</strong>
+            <div style="display:flex; flex-wrap:wrap; gap:12px;">
+                <span><span class="badge badge-ok">✔ Eşleşiyor</span> MySQL stoku = Blockchain stoku</span>
+                <span><span class="badge badge-danger">⚠ Genesis Eksik</span> Veritabanında stok var, blockchain'de kayıt yok</span>
+                <span><span class="badge badge-danger">⚠ DB Fazla</span> MySQL stoku > Blockchain stoku — olası veritabanı manipülasyonu</span>
+                <span><span class="badge badge-warn">⚠ Blockchain Fazla</span> Blockchain stoku > MySQL stoku — eksik DB güncellemesi</span>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Detay Modalı -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetailOnOverlay(event)">
+    <div class="detail-panel">
+        <div class="detail-header">
+            <h3 id="detail-title">Lot Geçmişi</h3>
+            <button class="detail-close" onclick="closeDetail()">×</button>
+        </div>
+        <div class="detail-body" id="detail-body">
+            <div class="detail-loading">Yükleniyor...</div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ─── Filtreleme ───
+        function filterRows(filter, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            document.querySelectorAll('#integrity-table tbody tr').forEach(tr => {
+                if (filter === 'all') {
+                    tr.style.display = '';
+                } else {
+                    tr.style.display = tr.dataset.filter === filter ? '' : 'none';
+                }
+            });
+        }
+
+        // ─── Arama ───
+        function searchRows(query) {
+            const q = query.toLowerCase().trim();
+            document.querySelectorAll('#integrity-table tbody tr').forEach(tr => {
+                tr.style.display = (!q || tr.dataset.lot.includes(q)) ? '' : 'none';
+            });
+        }
+
+        // ─── Detay Modalı ───
+        async function showDetail(lotNumber, productName) {
+            const overlay = document.getElementById('detail-overlay');
+            const body = document.getElementById('detail-body');
+            document.getElementById('detail-title').textContent = lotNumber + ' — Blockchain Geçmişi';
+            body.innerHTML = '<div class="detail-loading">⏳ Blockchain\'den okunuyor...</div>';
+            overlay.classList.add('open');
+
+            try {
+                const res = await fetch('@Url.Action("LotDetail", "BlockchainExplorer")?lotNumber=' + encodeURIComponent(lotNumber));
+                const data = await res.json();
+
+                if (!data.success) {
+                    body.innerHTML = `<div style="color:#dc2626; padding:16px;">Hata: ${data.message}</div>`;
+                    return;
+                }
+
+                if (!data.history || data.history.length === 0) {
+                    body.innerHTML = '<div class="bce-empty"><div class="empty-icon">📭</div><p>Bu lot için blockchain kaydı bulunamadı.</p></div>';
+                    return;
+                }
+
+                const actionColors = {
+                    'Genesis': '#7c3aed', 'Produced': '#2563eb', 'Shipped': '#f59e0b',
+                    'Received': '#16a34a', 'Transferred': '#0891b2', 'Consumed': '#64748b',
+                    'Added': '#16a34a', 'Deducted': '#dc2626'
+                };
+
+                let html = `<div style="margin-bottom:14px; font-size:0.82rem; color:#64748b;">
+                    Durum: <strong style="color:#0f172a">${data.status?.state ?? '—'}</strong> &nbsp;|&nbsp;
+                    On-Chain Stok: <strong style="color:#0f172a">${data.status?.onChainQuantity ?? '—'}</strong>
+                </div>`;
+
+                html += '<div class="detail-timeline">';
+                for (const rec of data.history) {
+                    const color = actionColors[rec.action] || '#6366f1';
+                    const dateStr = new Date(rec.timestamp).toLocaleString('tr-TR');
+                    html += `
+                        <div class="tl-item">
+                            <div class="tl-dot" style="background:${color}; box-shadow:0 0 0 2px ${color};"></div>
+                            <div class="tl-action" style="color:${color}">${rec.action}</div>
+                            <div class="tl-meta">
+                                ${rec.quantity} adet &nbsp;·&nbsp; ${rec.fromLocation} → ${rec.toLocation} &nbsp;·&nbsp; ${dateStr}
+                            </div>
+                            <div class="tl-hash">${rec.userAddress}</div>
+                        </div>`;
+                }
+                html += '</div>';
+                body.innerHTML = html;
+
+            } catch (e) {
+                body.innerHTML = `<div style="color:#dc2626; padding:16px;">Bağlantı hatası: ${e.message}</div>`;
+            }
+        }
+
+        function closeDetail() {
+            document.getElementById('detail-overlay').classList.remove('open');
+        }
+
+        function closeDetailOnOverlay(e) {
+            if (e.target === document.getElementById('detail-overlay')) closeDetail();
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+    </script>
+}

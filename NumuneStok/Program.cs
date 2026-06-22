@@ -2,6 +2,17 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using NumuneStok.Services;
 
+var syncRequested =
+    args.Any(arg => string.Equals(arg, "--sync-blockchain", StringComparison.OrdinalIgnoreCase)) ||
+    Environment.GetCommandLineArgs().Any(arg => string.Equals(arg, "--sync-blockchain", StringComparison.OrdinalIgnoreCase));
+
+if (syncRequested && !string.Equals(Environment.GetEnvironmentVariable("BLOCKCHAIN_SYNC_SOURCE"), "start_and_sync", StringComparison.Ordinal))
+{
+    Console.Error.WriteLine("Blockchain başlangıç stoğu yalnızca Blockchain/scripts/start_and_sync.sh üzerinden senkronize edilebilir.");
+    Environment.ExitCode = 1;
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -14,6 +25,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Blockchain servisini DI container'a kaydet
 builder.Services.AddScoped<IBlockchainService, BlockchainService>();
+builder.Services.AddSingleton<IBlockchainStartupStockSyncService, BlockchainStartupStockSyncService>();
 
 
 builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
@@ -29,6 +41,30 @@ builder.Services.AddAuthorization();
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await DatabaseSchemaInitializer.EnsureSupplyChainSchemaAsync(context);
+}
+
+if (syncRequested)
+{
+    using var scope = app.Services.CreateScope();
+    var syncService = scope.ServiceProvider.GetRequiredService<IBlockchainStartupStockSyncService>();
+    var result = await syncService.SynchronizeAsync(force: true);
+
+    if (!result.Succeeded)
+    {
+        Console.Error.WriteLine($"❌ Blockchain başlangıç stoğu senkronize edilemedi: {result.ErrorMessage}");
+        Environment.ExitCode = 1;
+        return;
+    }
+
+    Console.WriteLine(
+        $"✅ Blockchain başlangıç stoğu senkronize edildi. Lot: {result.LotCount}, yeni başlangıç: {result.InitializedCount}, tamamlama: {result.CompletedCount}");
+    return;
+}
 
 
 // Configure the HTTP request pipeline.
@@ -56,4 +92,3 @@ app.MapControllerRoute(
     pattern: "{controller=Account}/{action=Login}/{id?}"); // Giriş sayfasına yönlendirme
 
 app.Run();
-

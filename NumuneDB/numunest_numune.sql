@@ -649,18 +649,169 @@ CREATE TABLE `users` (
   `Id` int(11) NOT NULL,
   `UserName` longtext NOT NULL,
   `Password` longtext NOT NULL,
-  `RoleId` int(11) NOT NULL
+  `RoleId` int(11) NOT NULL,
+  `BlockchainRole` longtext DEFAULT NULL,
+  `WalletAddress` longtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 --
 -- Tablo döküm verisi `users`
 --
 
-INSERT INTO `users` (`Id`, `UserName`, `Password`, `RoleId`) VALUES
-(1, 'atkbey', '2baae0c821755bb439e73cecac9d286bfbe6f584ffca7f9ac4c9798df4180ab7', 1),
-(3, 'numune', '9a33db000b4262f3516e56bd012334cf9385e911c46bf1a43bd3a2b3b7e0505a', 2),
-(5, 'personel', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 3),
-(6, 'inncrea', '2baae0c821755bb439e73cecac9d286bfbe6f584ffca7f9ac4c9798df4180ab7', 1);
+INSERT INTO `users` (`Id`, `UserName`, `Password`, `RoleId`, `BlockchainRole`, `WalletAddress`) VALUES
+(1, 'atkbey', '2baae0c821755bb439e73cecac9d286bfbe6f584ffca7f9ac4c9798df4180ab7', 1, 'Admin', NULL),
+(3, 'numune', '9a33db000b4262f3516e56bd012334cf9385e911c46bf1a43bd3a2b3b7e0505a', 2, 'Warehouse', NULL),
+(5, 'personel', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 3, 'Laboratory', NULL),
+(6, 'inncrea', '2baae0c821755bb439e73cecac9d286bfbe6f584ffca7f9ac4c9798df4180ab7', 1, 'Admin', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Tablo için tablo yapısı `Suppliers`
+--
+
+CREATE TABLE `Suppliers` (
+  `Id` int(11) NOT NULL,
+  `Name` longtext NOT NULL,
+  `ContactName` longtext DEFAULT NULL,
+  `WalletAddress` longtext DEFAULT NULL,
+  `IsActive` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+--
+-- Tablo döküm verisi `Suppliers`
+--
+
+INSERT INTO `Suppliers` (`Id`, `Name`, `ContactName`, `WalletAddress`, `IsActive`) VALUES
+(1, 'Tedarikçi 1', 'Üretim Birimi', NULL, 1),
+(2, 'Tedarikçi 2', 'Kalite Birimi', NULL, 1),
+(3, 'Tedarikçi 3', 'Lojistik Birimi', NULL, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Tablo için tablo yapısı `Carriers`
+--
+
+CREATE TABLE `Carriers` (
+  `Id` int(11) NOT NULL,
+  `Name` longtext NOT NULL,
+  `ContactName` longtext DEFAULT NULL,
+  `WalletAddress` longtext DEFAULT NULL,
+  `IsActive` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+--
+-- Tablo döküm verisi `Carriers`
+--
+
+INSERT INTO `Carriers` (`Id`, `Name`, `ContactName`, `WalletAddress`, `IsActive`) VALUES
+(1, 'Standart Lojistik', 'Sevkiyat Ekibi', NULL, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Tablo için tablo yapısı `WarehouseLocations`
+--
+
+CREATE TABLE `WarehouseLocations` (
+  `Id` int(11) NOT NULL,
+  `Name` longtext NOT NULL,
+  `Address` longtext DEFAULT NULL,
+  `WalletAddress` longtext DEFAULT NULL,
+  `IsActive` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+--
+-- Tablo döküm verisi `WarehouseLocations`
+--
+
+INSERT INTO `WarehouseLocations` (`Id`, `Name`, `Address`, `WalletAddress`, `IsActive`) VALUES
+(1, 'Merkez Numune Deposu', 'Ana kabul ve stok noktası', NULL, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Tablo için tablo yapısı `LaboratoryLocations`
+--
+
+CREATE TABLE `LaboratoryLocations` (
+  `Id` int(11) NOT NULL,
+  `Name` longtext NOT NULL,
+  `Department` longtext DEFAULT NULL,
+  `WalletAddress` longtext DEFAULT NULL,
+  `IsActive` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+--
+-- Tablo döküm verisi `LaboratoryLocations`
+--
+
+INSERT INTO `LaboratoryLocations` (`Id`, `Name`, `Department`, `WalletAddress`, `IsActive`) VALUES
+(1, 'Klinik Biyokimya Lab.', 'Biyokimya', NULL, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Tablo için tablo yapısı `SupplyChainReceipts`
+--
+
+CREATE TABLE `SupplyChainReceipts` (
+  `Id` int(11) NOT NULL,
+  `ProductId` int(11) NOT NULL,
+  `ChildProductId` int(11) DEFAULT NULL,
+  `LotNumber` longtext NOT NULL,
+  `Quantity` int(11) NOT NULL,
+  `FromLocation` longtext NOT NULL,
+  `ToLocation` longtext NOT NULL,
+  `Status` int(11) NOT NULL,
+  `BlockchainTransactionHash` longtext DEFAULT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `CompletedAt` datetime(6) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tablo için tablo yapısı `SupplyChainShipments`
+--
+
+CREATE TABLE `SupplyChainShipments` (
+  `Id` int(11) NOT NULL,
+  `ProductId` int(11) NOT NULL,
+  `ChildProductId` int(11) DEFAULT NULL,
+  `SupplierId` int(11) DEFAULT NULL,
+  `CarrierId` int(11) DEFAULT NULL,
+  `WarehouseLocationId` int(11) DEFAULT NULL,
+  `LotNumber` longtext NOT NULL,
+  `Quantity` int(11) NOT NULL,
+  `Status` int(11) NOT NULL,
+  `BlockchainTransactionHash` longtext DEFAULT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `ShippedAt` datetime(6) DEFAULT NULL,
+  `ReceivedAt` datetime(6) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tablo için tablo yapısı `SupplyChainTransfers`
+--
+
+CREATE TABLE `SupplyChainTransfers` (
+  `Id` int(11) NOT NULL,
+  `ProductId` int(11) NOT NULL,
+  `ChildProductId` int(11) DEFAULT NULL,
+  `FromWarehouseLocationId` int(11) DEFAULT NULL,
+  `ToLaboratoryLocationId` int(11) DEFAULT NULL,
+  `LotNumber` longtext NOT NULL,
+  `Quantity` int(11) NOT NULL,
+  `Status` int(11) NOT NULL,
+  `BlockchainTransactionHash` longtext DEFAULT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `TransferredAt` datetime(6) DEFAULT NULL,
+  `ConsumedAt` datetime(6) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 -- --------------------------------------------------------
 
@@ -682,7 +833,10 @@ INSERT INTO `__efmigrationshistory` (`MigrationId`, `ProductVersion`) VALUES
 ('20241013145537_AddedCategory', '6.0.32'),
 ('20241018112524_UpdateProduct', '7.0.3'),
 ('20241018122700_AddedChildProduct', '7.0.3'),
-('20241018132641_UpdatedChildProduct', '7.0.3');
+('20241018132641_UpdatedChildProduct', '7.0.3'),
+('20241105093010_AddFeatureToProduct', '7.0.3'),
+('20250129074228_AddCriticalToProduct', '7.0.3'),
+('20260622000100_AddSupplyChainManagementModels', '7.0.3');
 
 --
 -- Dökümü yapılmış tablolar için indeksler
@@ -720,6 +874,59 @@ ALTER TABLE `roles`
 ALTER TABLE `users`
   ADD PRIMARY KEY (`Id`),
   ADD KEY `IX_Users_RoleId` (`RoleId`);
+
+--
+-- Tablo için indeksler `Suppliers`
+--
+ALTER TABLE `Suppliers`
+  ADD PRIMARY KEY (`Id`);
+
+--
+-- Tablo için indeksler `Carriers`
+--
+ALTER TABLE `Carriers`
+  ADD PRIMARY KEY (`Id`);
+
+--
+-- Tablo için indeksler `WarehouseLocations`
+--
+ALTER TABLE `WarehouseLocations`
+  ADD PRIMARY KEY (`Id`);
+
+--
+-- Tablo için indeksler `LaboratoryLocations`
+--
+ALTER TABLE `LaboratoryLocations`
+  ADD PRIMARY KEY (`Id`);
+
+--
+-- Tablo için indeksler `SupplyChainReceipts`
+--
+ALTER TABLE `SupplyChainReceipts`
+  ADD PRIMARY KEY (`Id`),
+  ADD KEY `IX_SupplyChainReceipts_ProductId` (`ProductId`),
+  ADD KEY `IX_SupplyChainReceipts_ChildProductId` (`ChildProductId`);
+
+--
+-- Tablo için indeksler `SupplyChainShipments`
+--
+ALTER TABLE `SupplyChainShipments`
+  ADD PRIMARY KEY (`Id`),
+  ADD KEY `IX_SupplyChainShipments_ProductId` (`ProductId`),
+  ADD KEY `IX_SupplyChainShipments_ChildProductId` (`ChildProductId`),
+  ADD KEY `IX_SupplyChainShipments_SupplierId` (`SupplierId`),
+  ADD KEY `IX_SupplyChainShipments_CarrierId` (`CarrierId`),
+  ADD KEY `IX_SupplyChainShipments_WarehouseLocationId` (`WarehouseLocationId`);
+
+--
+-- Tablo için indeksler `SupplyChainTransfers`
+--
+ALTER TABLE `SupplyChainTransfers`
+  ADD PRIMARY KEY (`Id`),
+  ADD KEY `IX_SupplyChainTransfers_ProductId` (`ProductId`),
+  ADD KEY `IX_SupplyChainTransfers_ChildProductId` (`ChildProductId`),
+  ADD KEY `IX_SupplyChainTransfers_FromWarehouseLocationId` (`FromWarehouseLocationId`),
+  ADD KEY `IX_SupplyChainTransfers_ToLaboratoryLocationId` (`ToLaboratoryLocationId`);
 
 --
 -- Tablo için indeksler `__efmigrationshistory`
@@ -762,6 +969,48 @@ ALTER TABLE `users`
   MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
+-- Tablo için AUTO_INCREMENT değeri `Suppliers`
+--
+ALTER TABLE `Suppliers`
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- Tablo için AUTO_INCREMENT değeri `Carriers`
+--
+ALTER TABLE `Carriers`
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- Tablo için AUTO_INCREMENT değeri `WarehouseLocations`
+--
+ALTER TABLE `WarehouseLocations`
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- Tablo için AUTO_INCREMENT değeri `LaboratoryLocations`
+--
+ALTER TABLE `LaboratoryLocations`
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- Tablo için AUTO_INCREMENT değeri `SupplyChainReceipts`
+--
+ALTER TABLE `SupplyChainReceipts`
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Tablo için AUTO_INCREMENT değeri `SupplyChainShipments`
+--
+ALTER TABLE `SupplyChainShipments`
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Tablo için AUTO_INCREMENT değeri `SupplyChainTransfers`
+--
+ALTER TABLE `SupplyChainTransfers`
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- Dökümü yapılmış tablolar için kısıtlamalar
 --
 
@@ -782,6 +1031,32 @@ ALTER TABLE `products`
 --
 ALTER TABLE `users`
   ADD CONSTRAINT `FK_Users_Roles_RoleId` FOREIGN KEY (`RoleId`) REFERENCES `roles` (`Id`) ON DELETE CASCADE;
+
+--
+-- Tablo kısıtlamaları `SupplyChainReceipts`
+--
+ALTER TABLE `SupplyChainReceipts`
+  ADD CONSTRAINT `FK_SCReceipts_ChildProduct` FOREIGN KEY (`ChildProductId`) REFERENCES `childproducts` (`Id`),
+  ADD CONSTRAINT `FK_SCReceipts_Product` FOREIGN KEY (`ProductId`) REFERENCES `products` (`Id`) ON DELETE CASCADE;
+
+--
+-- Tablo kısıtlamaları `SupplyChainShipments`
+--
+ALTER TABLE `SupplyChainShipments`
+  ADD CONSTRAINT `FK_SCShipments_Carrier` FOREIGN KEY (`CarrierId`) REFERENCES `Carriers` (`Id`),
+  ADD CONSTRAINT `FK_SCShipments_ChildProduct` FOREIGN KEY (`ChildProductId`) REFERENCES `childproducts` (`Id`),
+  ADD CONSTRAINT `FK_SCShipments_Product` FOREIGN KEY (`ProductId`) REFERENCES `products` (`Id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_SCShipments_Supplier` FOREIGN KEY (`SupplierId`) REFERENCES `Suppliers` (`Id`),
+  ADD CONSTRAINT `FK_SCShipments_Warehouse` FOREIGN KEY (`WarehouseLocationId`) REFERENCES `WarehouseLocations` (`Id`);
+
+--
+-- Tablo kısıtlamaları `SupplyChainTransfers`
+--
+ALTER TABLE `SupplyChainTransfers`
+  ADD CONSTRAINT `FK_SCTransfers_ChildProduct` FOREIGN KEY (`ChildProductId`) REFERENCES `childproducts` (`Id`),
+  ADD CONSTRAINT `FK_SCTransfers_Laboratory` FOREIGN KEY (`ToLaboratoryLocationId`) REFERENCES `LaboratoryLocations` (`Id`),
+  ADD CONSTRAINT `FK_SCTransfers_Product` FOREIGN KEY (`ProductId`) REFERENCES `products` (`Id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_SCTransfers_Warehouse` FOREIGN KEY (`FromWarehouseLocationId`) REFERENCES `WarehouseLocations` (`Id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

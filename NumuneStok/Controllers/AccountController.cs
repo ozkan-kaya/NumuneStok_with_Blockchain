@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
 namespace NumuneStok.Controllers
@@ -79,6 +80,7 @@ namespace NumuneStok.Controllers
 
 
         // Kayıt Ol GET
+        [Authorize(Roles = "SuperUser")]
         [HttpGet]
         public IActionResult Register()
         {
@@ -88,6 +90,7 @@ namespace NumuneStok.Controllers
         }
 
         // Kayıt Ol POST
+        [Authorize(Roles = "SuperUser")]
         [HttpPost]
         public async Task<IActionResult> Register(string username, string password, int roleId)
         {

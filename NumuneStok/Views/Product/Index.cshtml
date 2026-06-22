@@ -27,9 +27,20 @@
             <h2>Tüm Ana Ürünler</h2>
         </div>
         <div class="text-end">
+            <a asp-action="SupplyChainSimulation" class="btn btn-primary" style="margin-right: 10px;">Tedarik Zinciri Simülasyonu</a>
             <a asp-action="Create" class="btn btn-success">Ana Ürün Ekle</a>
         </div>
     </div>
+
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-success">@TempData["Info"]</div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
 
     <table id="example" class="display nowrap" style="width:100%">
         <thead>
