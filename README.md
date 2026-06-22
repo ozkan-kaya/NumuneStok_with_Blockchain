@@ -4,7 +4,7 @@
 
 ### Blockchain Tabanlı Laboratuvar Numune Stok ve Tedarik Zinciri Yönetim Sistemi
 
-_Lot bazlı numune hareketlerinin akıllı sözleşme kurallarıyla doğrulanabilir, değiştirilemez kayıt defterinde izlenmesi_
+_ASP.NET Core MVC tabanlı, Ethereum akıllı sözleşmeleriyle entegre edilmiş, hastane numuneleri için şeffaf ve değiştirilemez tedarik zinciri takibi sağlayan stok yönetim sistemi_
 
 ---
 
@@ -20,7 +20,7 @@ _Lot bazlı numune hareketlerinin akıllı sözleşme kurallarıyla doğrulanabi
 
 ## 📖 Proje Hakkında
 
-**NumuneStok**, klinik laboratuvar ortamlarında kullanılan reagent, kit ve numune malzemelerinin lot bazlı stok hareketlerini hem geleneksel bir ilişkisel veritabanında hem de lokal izinli bir blockchain ağı üzerinde eş zamanlı olarak kaydeden bir **ASP.NET Core MVC** prototipidir.
+**NumuneStok**, hastane ve klinik laboratuvar ortamlarında kullanılan numune, reagent ve kit stoklarının lot bazlı hareketlerini hem geleneksel bir ilişkisel veritabanında hem de Ethereum uyumlu lokal bir blockchain ağı üzerinde kaydeden bir **ASP.NET Core MVC** prototipidir. Sistem, akıllı sözleşmeler aracılığıyla tedarik zinciri adımlarını doğrulanabilir, şeffaf ve değiştirilemez bir denetim izine dönüştürür.
 
 Sistem iki katmanlı bir mimari kullanır:
 
